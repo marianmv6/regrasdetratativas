@@ -20,7 +20,7 @@ export const PolicyList: React.FC<PolicyListProps> = ({
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Janela de tempo</th>
+          <th>Tipo de acompanhamento</th>
           <th>Status</th>
           <th></th>
         </tr>
@@ -34,7 +34,7 @@ export const PolicyList: React.FC<PolicyListProps> = ({
                 <span className="list-description">{policy.description}</span>
               )}
             </td>
-            <td>{policy.janela}h</td>
+            <td>{policy.tipoAcompanhamento === 'motorista' ? 'Por motorista' : 'Por veículo'}</td>
             <td>
               <span className={`badge badge-rounded ${policy.active ? 'badge-active' : 'badge-inactive'}`}>
                 {policy.active ? 'Ativo' : 'Inativo'}

@@ -152,11 +152,11 @@ export const ModalSelect: React.FC<ModalSelectProps> = ({
           id={id}
           type="text"
           className="modal-select__input"
-          value={open ? search : displayLabel}
-          onChange={(e) => (open ? setSearch(e.target.value) : null)}
+          value={multiple ? displayLabel : (open ? search : displayLabel)}
+          onChange={(e) => (!multiple && open ? setSearch(e.target.value) : null)}
           onFocus={() => setOpen(true)}
           onBlur={() => {}}
-          readOnly={!open}
+          readOnly={multiple || !open}
           placeholder={placeholder}
           disabled={disabled}
           autoComplete="off"

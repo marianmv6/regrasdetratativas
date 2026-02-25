@@ -1,5 +1,5 @@
 /**
- * Módulo Regras de Risco - Módulo de Eventos | Creare Sistemas
+ * Módulo Regras de Tratativa - Módulo de Eventos | Creare Sistemas
  */
 
 export { RiskRulesPage } from './pages/RiskRulesPage';

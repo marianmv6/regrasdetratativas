@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
-import type { Contact } from '../../types/risk.types';
+import type { Contact, ContactShift } from '../../types/risk.types';
 import { CrModal } from '../shared/CrModal';
 import { FieldErrorIcon } from '../shared/FieldErrorIcon';
 import { IconEdit, IconTrash } from '../shared/Icons';
+import { ModalSelect, type ModalSelectOption } from '../shared/ModalSelect';
+import { TimePicker } from '../shared/TimePicker';
+
+const TURNOS_OPTIONS: ModalSelectOption[] = [
+  { value: 'manha', label: 'Manhã' },
+  { value: 'tarde', label: 'Tarde' },
+  { value: 'noite', label: 'Noite' },
+  { value: 'madrugada', label: 'Madrugada' },
+];
 
 /** Máscara telefone: DDD + 9 dígitos → (XX) 9XXXX-XXXX */
 function formatPhone(value: string): string {
@@ -29,6 +38,9 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
+  const [turnosValue, setTurnosValue] = useState(''); // comma-separated for ModalSelect
+  const [timeStart, setTimeStart] = useState('');
+  const [timeEnd, setTimeEnd] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ name?: boolean; phone?: boolean; email?: boolean }>({});
 
   const openNew = () => {
@@ -37,6 +49,9 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
     setPhone('');
     setEmail('');
     setDescription('');
+    setTurnosValue('');
+    setTimeStart('');
+    setTimeEnd('');
     setFieldErrors({});
     setModalOpen(true);
   };
@@ -46,6 +61,9 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
     setPhone(c.phone ? formatPhone(c.phone) : '');
     setEmail(c.email ?? '');
     setDescription(c.description ?? '');
+    setTurnosValue(c.turnos?.length ? c.turnos.join(', ') : '');
+    setTimeStart(c.timeStart ?? '');
+    setTimeEnd(c.timeEnd ?? '');
     setFieldErrors({});
     setModalOpen(true);
   };
@@ -71,12 +89,18 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
     const errors = { name: nameInvalid, phone: phoneInvalid, email: emailInvalid };
     setFieldErrors(errors);
     if (nameInvalid || phoneInvalid || emailInvalid) return;
+    const turnosParsed = turnosValue
+      ? (turnosValue.split(',').map((v) => v.trim()).filter(Boolean) as ContactShift[])
+      : undefined;
     onSave({
       ...(editing?.id && { id: editing.id }),
       name: nameTrimmed,
       phone: formatPhone(phoneRaw),
       email: emailTrimmed,
       description: description.trim() || undefined,
+      turnos: turnosParsed?.length ? turnosParsed : undefined,
+      timeStart: timeStart.trim() || undefined,
+      timeEnd: timeEnd.trim() || undefined,
     });
     closeModal();
   };
@@ -95,6 +119,7 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
               <th>Nome</th>
               <th>Telefone</th>
               <th>Email</th>
+              <th>Turnos</th>
               <th>Descrição</th>
               <th></th>
             </tr>
@@ -102,7 +127,7 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
           <tbody>
             {contacts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="list-empty">
+                <td colSpan={6} className="list-empty">
                   Nenhum contato cadastrado.
                 </td>
               </tr>
@@ -112,7 +137,23 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
                   <td>{c.name ?? '—'}</td>
                   <td>{c.phone ?? '—'}</td>
                   <td>{c.email ?? '—'}</td>
-                  <td>{c.description ?? '—'}</td>
+                  <td>
+                    <span className="contact-turnos-cell">
+                      {c.turnos?.length
+                        ? c.turnos.map((t) => (
+                            <span key={t} className="contact-turno-chip">
+                              {TURNOS_OPTIONS.find((o) => o.value === t)?.label ?? t}
+                            </span>
+                          ))
+                        : '—'}
+                      {(c.timeStart || c.timeEnd) && (
+                        <span className="contact-time-range">
+                          {[c.timeStart, c.timeEnd].filter(Boolean).join('–')}
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="drawer-contacts-table__desc-cell">{c.description ?? '—'}</td>
                   <td className="list-cell-actions">
                     <div className="list-actions">
                       <button
@@ -149,12 +190,10 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
         cancelLabel="Cancelar"
       >
         <form id="contact-form" onSubmit={handleSubmit} className="form-card contact-form">
-          <div className="contact-form-row contact-form-row--name-phone-email">
-            <div className={`form-group ${fieldErrors.name ? 'has-error' : ''}`}>
-              <div className="form-group__label-row">
-                <label htmlFor="contact-name">Nome</label>
-              </div>
-              <div className="form-group__input-with-error">
+          <div className="form-row">
+            <div className={`form-field ${fieldErrors.name ? 'has-error' : ''}`}>
+              <label htmlFor="contact-name">Nome</label>
+              <div className="form-field__input-wrap">
                 <input
                   id="contact-name"
                   type="text"
@@ -175,11 +214,9 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
                 )}
               </div>
             </div>
-            <div className={`form-group ${fieldErrors.phone ? 'has-error' : ''}`}>
-              <div className="form-group__label-row">
-                <label htmlFor="contact-phone">Telefone</label>
-              </div>
-              <div className="form-group__input-with-error">
+            <div className={`form-field ${fieldErrors.phone ? 'has-error' : ''}`}>
+              <label htmlFor="contact-phone">Telefone</label>
+              <div className="form-field__input-wrap">
                 <input
                   id="contact-phone"
                   type="tel"
@@ -197,11 +234,9 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
                 )}
               </div>
             </div>
-            <div className={`form-group ${fieldErrors.email ? 'has-error' : ''}`}>
-              <div className="form-group__label-row">
-                <label htmlFor="contact-email">Email</label>
-              </div>
-              <div className="form-group__input-with-error">
+            <div className={`form-field ${fieldErrors.email ? 'has-error' : ''}`}>
+              <label htmlFor="contact-email">Email</label>
+              <div className="form-field__input-wrap">
                 <input
                   id="contact-email"
                   type="text"
@@ -222,6 +257,32 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
                 )}
               </div>
             </div>
+          </div>
+          <div className="form-group">
+            <ModalSelect
+              id="contact-turnos"
+              label="Turno"
+              value={turnosValue}
+              onChange={setTurnosValue}
+              options={TURNOS_OPTIONS}
+              placeholder="Selecione"
+              multiple
+              className="modal-select--no-pill"
+            />
+          </div>
+          <div className="contact-form-row contact-form-row--time">
+            <TimePicker
+              id="contact-time-start"
+              label="Horário início"
+              value={timeStart}
+              onChange={setTimeStart}
+            />
+            <TimePicker
+              id="contact-time-end"
+              label="Horário fim"
+              value={timeEnd}
+              onChange={setTimeEnd}
+            />
           </div>
           <div className="form-group">
             <label htmlFor="contact-desc">Descrição</label>
