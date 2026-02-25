@@ -1,5 +1,5 @@
 /**
- * Tipos do módulo Regras de Risco - Creare Sistemas
+ * Tipos do módulo Regras de Tratativa - Creare Sistemas
  */
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
@@ -10,18 +10,34 @@ export type EventType = 'video' | 'telemetria' | 'eficiencia' | 'personalizados'
 /** Usuários atribuídos: 'all' = Todos os usuários; ou lista de ids */
 export type PolicyUsersAttributed = 'all' | string[];
 
+/** Tipo de acompanhamento da política: por motorista ou por veículo */
+export type PolicyTrackingType = 'motorista' | 'veiculo';
+
+/** Configuração de um evento dentro da política: pontos e duração ativa */
+export interface PolicyEventConfig {
+  pontos: number;
+  /** Duração ativa (ex: "15min", "1h", "2h") */
+  duracaoAtiva: string;
+}
+
+/** Gatilho: a partir de X pontos solicitar tratativa (trilha) Y */
+export interface PolicyTrigger {
+  aPartirDePontos: number;
+  trilhaId: string;
+}
+
 export interface Policy {
   id: string;
   name: string;
   description?: string;
-  /** Janela de tempo em horas (1–12); default 2 */
-  janela: number;
-  /** Ids dos eventos (score rules) contemplados */
-  eventosContemplados: string[];
+  /** Tipo de acompanhamento: Por motorista / Por veículo */
+  tipoAcompanhamento: PolicyTrackingType;
+  /** Configuração por evento: eventId -> pontos e duração ativa */
+  configEventos: Record<string, PolicyEventConfig>;
   /** 'all' ou ids de usuários específicos */
   usuariosAtribuidos: PolicyUsersAttributed;
-  /** Id da tratativa (trilha) ativa vinculada; seleção única */
-  trailId?: string;
+  /** Gatilhos (até 3): a partir de X pontos solicitar trilha Y; ordem crescente */
+  gatilhos: PolicyTrigger[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -101,6 +117,9 @@ export interface Trail {
   updatedAt: string;
 }
 
+/** Turnos disponíveis para contato (multi-select) */
+export type ContactShift = 'manha' | 'tarde' | 'noite' | 'madrugada';
+
 export interface Contact {
   id: string;
   name?: string;
@@ -108,6 +127,12 @@ export interface Contact {
   email?: string;
   description?: string;
   userId?: string;
+  /** Turnos: Manhã, Tarde, Noite, Madrugada (opcional) */
+  turnos?: ContactShift[];
+  /** Horário opcional início (ex: "08:00") */
+  timeStart?: string;
+  /** Horário opcional fim (ex: "12:00") */
+  timeEnd?: string;
 }
 
 export type VoiceMessageFormat = 'WAV' | 'MP3';

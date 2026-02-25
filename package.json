@@ -1,7 +1,7 @@
 {
   "name": "modulo-eventos",
   "version": "1.0.0",
-  "description": "Módulo de Eventos - Regras de Risco | Creare Sistemas",
+  "description": "Módulo de Eventos - Regras de Tratativa | Creare Sistemas",
   "type": "module",
   "scripts": {
     "dev": "vite",

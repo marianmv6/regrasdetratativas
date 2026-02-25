@@ -2,16 +2,6 @@ import React from 'react';
 import type { Trail } from '../../types/risk.types';
 import { IconEdit, IconTrash } from '../shared/Icons';
 
-const TRACKING_LABEL: Record<Trail['trackingType'], string> = {
-  motorista: 'Por motorista',
-  veiculo: 'Por veículo',
-};
-
-const MODE_LABEL: Record<Trail['mode'], string> = {
-  points: 'Pontos',
-  levels: 'Níveis',
-};
-
 interface TrailListProps {
   trails: Trail[];
   onEdit?: (trail: Trail) => void;
@@ -28,8 +18,6 @@ export const TrailList: React.FC<TrailListProps> = ({
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Tipo</th>
-          <th>Modo</th>
           <th>Etapas</th>
           <th>Status</th>
           <th></th>
@@ -39,8 +27,6 @@ export const TrailList: React.FC<TrailListProps> = ({
         {trails.map((t) => (
           <tr key={t.id}>
             <td>{t.name}</td>
-            <td>{TRACKING_LABEL[t.trackingType]}</td>
-            <td>{MODE_LABEL[t.mode]}</td>
             <td>{t.steps.length} etapa(s)</td>
             <td>
               <span className={`badge badge-rounded ${t.active ? 'badge-active' : 'badge-inactive'}`}>

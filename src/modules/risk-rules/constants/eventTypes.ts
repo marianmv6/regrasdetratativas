@@ -1,5 +1,5 @@
 /**
- * Tipos de evento e rótulos - Regras de Risco
+ * Tipos de evento e rótulos - Regras de Tratativa
  */
 
 import type { EventType } from '../types/risk.types';

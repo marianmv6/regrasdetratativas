@@ -6,8 +6,6 @@ import { RiskTabs } from '../components/tabs/RiskTabs';
 import { PolicyList } from '../components/policy/PolicyList';
 import { PolicyForm } from '../components/policy/PolicyForm';
 import { ScoreList } from '../components/scores/ScoreList';
-import { EditScoreModal } from '../components/scores/EditScoreModal';
-import { EditAllScoresModal } from '../components/scores/EditAllScoresModal';
 import { TreatmentList } from '../components/treatments/TreatmentList';
 import { TreatmentForm } from '../components/treatments/TreatmentForm';
 import { TrailList } from '../components/treatments/TrailList';
@@ -18,7 +16,6 @@ import { ConfirmModal } from '../components/shared/ConfirmModal';
 import { UnsavedConfirmModal } from '../components/shared/UnsavedConfirmModal';
 import { AppliedConfirmModal } from '../components/shared/AppliedConfirmModal';
 import { CrModal } from '../components/shared/CrModal';
-import type { EditScoreModalRef } from '../components/scores/EditScoreModal';
 import { SuccessToast, type ToastVariant } from '../components/shared/SuccessToast';
 import type { Policy, Treatment, Trail, Contact, VoiceMessage, ScoreRule, HistoryEntry } from '../types/risk.types';
 import { CrDrawer } from '../components/shared/CrDrawer';
@@ -26,7 +23,7 @@ import { ContactsPanel } from '../components/treatments/ContactsPanel';
 import { VoiceMessagesPanel } from '../components/treatments/VoiceMessagesPanel';
 
 /**
- * Página principal do módulo Regras de Risco - Módulo de Eventos.
+ * Página principal do módulo Regras de Tratativa - Módulo de Eventos.
  */
 export const RiskRulesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RiskTabId>('scores');
@@ -35,7 +32,6 @@ export const RiskRulesPage: React.FC = () => {
   const policiesRef = useRef(policies);
   policiesRef.current = policies;
   const [scores, setScores] = useState<ScoreRule[]>(mockScoreRules);
-  const initialScoresRef = useRef<ScoreRule[]>(mockScoreRules);
 
   const filteredScores = useMemo(() => {
     if (typeFilter === 'todos') return scores;
@@ -61,10 +57,6 @@ export const RiskRulesPage: React.FC = () => {
   const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
   const [voiceMessagesDrawerOpen, setVoiceMessagesDrawerOpen] = useState(false);
 
-  const [editScoreModalOpen, setEditScoreModalOpen] = useState(false);
-  const [scoreEditing, setScoreEditing] = useState<ScoreRule | null>(null);
-  const [editAllScoresModalOpen, setEditAllScoresModalOpen] = useState(false);
-
   const [policyFormOpen, setPolicyFormOpen] = useState(false);
   const [policyEditing, setPolicyEditing] = useState<Policy | null>(null);
   const [treatmentFormOpen, setTreatmentFormOpen] = useState(false);
@@ -89,8 +81,6 @@ export const RiskRulesPage: React.FC = () => {
   }>({ open: false, pendingToast: null });
   const [policyFormDirty, setPolicyFormDirty] = useState(false);
   const [trailFormDirty, setTrailFormDirty] = useState(false);
-  const [editScoreDirty, setEditScoreDirty] = useState(false);
-  const editScoreModalRef = useRef<EditScoreModalRef>(null);
   const [toast, setToast] = useState<{ visible: boolean; message: string; variant: ToastVariant }>({
     visible: false,
     message: '',
@@ -177,14 +167,40 @@ export const RiskRulesPage: React.FC = () => {
     } else closeTrailForm();
   };
 
-  const sameEventos = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false;
-    const sa = [...a].sort();
-    const sb = [...b].sort();
-    return sa.every((id, i) => id === sb[i]);
+  /** Eventos não podem estar em duas políticas ativas: verifica sobreposição de eventIds em configEventos */
+  const eventIdsOverlap = (configA: Record<string, { pontos: number; duracaoAtiva: string }>, configB: Record<string, { pontos: number; duracaoAtiva: string }>) => {
+    const idsA = new Set(Object.keys(configA));
+    return Object.keys(configB).some((id) => idsA.has(id));
   };
 
   const handlePolicySubmit = (data: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const otherActivePolicies = policies.filter(
+      (p) => p.active && p.id !== policyEditing?.id
+    );
+    const overlap = otherActivePolicies.some((p) =>
+      eventIdsOverlap(p.configEventos, data.configEventos)
+    );
+    if (overlap) {
+      showToast(
+        'Um evento não pode estar em duas políticas ativas. Remova o evento de outra política primeiro.',
+        'warning'
+      );
+      return;
+    }
+    const allScoreIds = new Set(scores.map((s) => s.id));
+    const otherPolicies = policies.filter((p) => p.id !== policyEditing?.id);
+    const eventIdsAfterSave = new Set([
+      ...otherPolicies.flatMap((p) => Object.keys(p.configEventos)),
+      ...Object.keys(data.configEventos),
+    ]);
+    const missingCount = [...allScoreIds].filter((id) => !eventIdsAfterSave.has(id)).length;
+    if (missingCount > 0) {
+      showToast(
+        `Cobertura total: todos os eventos devem estar em ao menos uma política. ${missingCount} evento(s) ficariam sem política.`,
+        'warning'
+      );
+      return;
+    }
     if (policyEditing) {
       setPolicies((prev) =>
         prev.map((p) =>
@@ -206,14 +222,8 @@ export const RiskRulesPage: React.FC = () => {
         showToast('Política atualizada com sucesso.');
       }
     } else {
-      const currentPolicies = policiesRef.current;
-      const otherActiveWithSameEventos = currentPolicies.some(
-        (p) => p.active && sameEventos(p.eventosContemplados, data.eventosContemplados)
-      );
-      const saveActive = !otherActiveWithSameEventos && !!data.active;
       const newPolicy = {
         ...data,
-        active: saveActive,
         id: `pol-${Date.now()}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -226,12 +236,7 @@ export const RiskRulesPage: React.FC = () => {
         action: 'create',
         actionDescription: 'Política criada.',
       });
-      if (otherActiveWithSameEventos) {
-        showToast(
-          'Não é possível ativar esta política, pois existem eventos já vinculados a outra política ativa.',
-          'warning'
-        );
-      } else if (saveActive) {
+      if (data.active) {
         setAppliedConfirm({ open: true, pendingToast: 'Política criada com sucesso.' });
       } else {
         showToast('Política criada com sucesso.');
@@ -466,108 +471,11 @@ export const RiskRulesPage: React.FC = () => {
     });
   };
 
-  const openEditScore = (score: ScoreRule) => {
-    setScoreEditing(score);
-    setEditScoreModalOpen(true);
-  };
-
-  const closeEditScoreModal = () => {
-    setEditScoreModalOpen(false);
-    setScoreEditing(null);
-    setEditScoreDirty(false);
-  };
-
-  const requestCloseEditScoreModal = () => {
-    if (editScoreDirty) {
-      setUnsavedConfirm({
-        open: true,
-        onSave: () => {
-          setUnsavedConfirm((c) => ({ ...c, open: false }));
-          setEditScoreDirty(false);
-          editScoreModalRef.current?.save();
-        },
-        onDiscard: () => {
-          setUnsavedConfirm((c) => ({ ...c, open: false }));
-          closeEditScoreModal();
-        },
-      });
-    } else closeEditScoreModal();
-  };
-
-  const handleSaveScore = (scoreId: string, newWeight: number) => {
-    const score = scores.find((s) => s.id === scoreId);
-    setScores((prev) =>
-      prev.map((s) => (s.id === scoreId ? { ...s, weight: newWeight } : s))
-    );
-    addHistoryEntry({
-      entityType: 'score',
-      entityId: scoreId,
-      entityName: score?.name ?? scoreId,
-      action: 'update',
-      actionDescription: `Pontuação alterada para ${newWeight}.`,
-    });
-    closeEditScoreModal();
-    setAppliedConfirm({ open: true, pendingToast: 'Pontuação atualizada com sucesso.' });
-  };
-
-  const initialScores = initialScoresRef.current;
-  const scoresDifferFromDefault = scores.some((s) => {
-    const init = initialScores.find((i) => i.id === s.id);
-    return !init || init.weight !== s.weight;
-  });
-
-  const restoreScoresToDefault = () => {
-    setScores((prev) =>
-      prev.map((s) => {
-        const init = initialScoresRef.current.find((i) => i.id === s.id);
-        const defaultW = init?.defaultWeight ?? init?.weight ?? s.weight;
-        return { ...s, weight: defaultW };
-      })
-    );
-  };
-
-  const openRetomarPadraoConfirm = () => {
-    setAppliedConfirm({
-      open: true,
-      pendingToast: 'Pontuações restauradas ao padrão.',
-      onConfirm: () => {
-        restoreScoresToDefault();
-        addHistoryEntry({
-          entityType: 'score',
-          entityId: 'padrao',
-          entityName: 'Pontuações',
-          action: 'update',
-          actionDescription: 'Pontuações restauradas ao padrão.',
-        });
-      },
-    });
-  };
-
-  const closeEditAllScoresModal = () => setEditAllScoresModalOpen(false);
-
-  const handleSaveAllScores = (updates: Array<{ id: string; weight: number }>) => {
-    setScores((prev) =>
-      prev.map((s) => {
-        const u = updates.find((u) => u.id === s.id);
-        return u ? { ...s, weight: u.weight } : s;
-      })
-    );
-    addHistoryEntry({
-      entityType: 'score',
-      entityId: 'edicao-lote',
-      entityName: 'Pontuações',
-      action: 'update',
-      actionDescription: `${updates.length} pontuação(ões) atualizada(s).`,
-    });
-    closeEditAllScoresModal();
-    setAppliedConfirm({ open: true, pendingToast: 'Pontuações atualizadas com sucesso.' });
-  };
-
   return (
     <div className="risk-rules-page page-layout content-body">
       <div className="content-toolbar top-bar">
         <div className="content-toolbar-left">
-          <h1 className="body-page-title">Regras de risco</h1>
+          <h1 className="body-page-title">Regras de tratativa</h1>
           {activeTab === 'scores' && (
             <div className="type-filter-wrap" ref={typeFilterRef}>
               <button
@@ -613,26 +521,6 @@ export const RiskRulesPage: React.FC = () => {
             <button type="button" className="btn btn-primary" onClick={() => openPolicyForm()}>
               Nova política
             </button>
-          )}
-          {activeTab === 'scores' && (
-            <>
-              {scoresDifferFromDefault && (
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={openRetomarPadraoConfirm}
-                >
-                  Retomar padrão
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setEditAllScoresModalOpen(true)}
-              >
-                Editar todos
-              </button>
-            </>
           )}
           {activeTab === 'treatments' && (
             <>
@@ -696,11 +584,7 @@ export const RiskRulesPage: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'scores' && (
-          <>
-            <ScoreList scores={filteredScores} onEdit={openEditScore} />
-          </>
-        )}
+        {activeTab === 'scores' && <ScoreList scores={filteredScores} />}
 
         {activeTab === 'treatments' && (
           <>
@@ -721,7 +605,7 @@ export const RiskRulesPage: React.FC = () => {
                   onSubmit={handleTrailSubmit}
                   onCancel={closeTrailForm}
                   hideActions
-                  contacts={contacts.map((c) => ({ id: c.id, name: c.name }))}
+                  contacts={contacts}
                   voiceMessages={voiceMessages.filter((v) => v.active).map((v) => ({ id: v.id, identification: v.identification }))}
                   onValidationError={(msg) => showToast(msg, 'warning')}
                   onDirtyChange={setTrailFormDirty}
@@ -775,23 +659,6 @@ export const RiskRulesPage: React.FC = () => {
           setAppliedConfirm({ open: false, pendingToast: null });
           if (msg) showToast(msg);
         }}
-      />
-
-      <EditScoreModal
-        ref={editScoreModalRef}
-        open={editScoreModalOpen}
-        score={scoreEditing}
-        onSave={handleSaveScore}
-        onClose={requestCloseEditScoreModal}
-        onCancel={closeEditScoreModal}
-        onDirtyChange={setEditScoreDirty}
-      />
-
-      <EditAllScoresModal
-        open={editAllScoresModalOpen}
-        scores={filteredScores}
-        onSave={handleSaveAllScores}
-        onCancel={closeEditAllScoresModal}
       />
 
       <CrDrawer open={contactsDrawerOpen} title="Gerenciar contatos" onClose={() => setContactsDrawerOpen(false)} className="cr-drawer--wide">
