@@ -7,7 +7,7 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
-  { id: 'scores', label: 'Eventos' },
+  { id: 'scores', label: 'Pontuações' },
   { id: 'treatments', label: 'Tratativas' },
   { id: 'policy', label: 'Política de avaliação' },
   { id: 'history', label: 'Histórico' },

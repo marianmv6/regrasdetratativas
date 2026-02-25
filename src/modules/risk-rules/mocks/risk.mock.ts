@@ -1,5 +1,5 @@
 /**
- * Mocks do módulo Regras de Tratativa - Creare Sistemas
+ * Mocks do módulo Regras de Risco - Creare Sistemas
  * Pontuações e níveis conforme imagem de referência (modal Pontuações).
  */
 
@@ -19,25 +19,16 @@ export const mockUsers: PlatformUser[] = [
   { id: 'usr-3', name: 'Ana Oliveira', active: true },
 ];
 
-const defaultEventConfig = (pontos: number) => ({ pontos, duracaoAtiva: '1h' });
-
 export const mockPolicies: Policy[] = [
   {
     id: 'pol-1',
     name: 'Política padrão',
     description: 'Regras gerais de risco para operação',
     active: true,
-    tipoAcompanhamento: 'motorista',
-    configEventos: {
-      'score-1': defaultEventConfig(20),
-      'score-2': defaultEventConfig(40),
-      'score-3': defaultEventConfig(60),
-    },
+    janela: 2,
+    eventosContemplados: ['score-1', 'score-2', 'score-3'],
     usuariosAtribuidos: 'all',
-    gatilhos: [
-      { aPartirDePontos: 20, trilhaId: 'trail-1' },
-      { aPartirDePontos: 40, trilhaId: 'trail-1' },
-    ],
+    trailId: 'trail-1',
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-02-01T14:30:00Z',
   },
@@ -45,13 +36,9 @@ export const mockPolicies: Policy[] = [
     id: 'pol-2',
     name: 'Política alta criticidade',
     active: true,
-    tipoAcompanhamento: 'veiculo',
-    configEventos: {
-      'score-4': defaultEventConfig(15),
-      'score-5': defaultEventConfig(20),
-    },
+    janela: 3,
+    eventosContemplados: ['score-4', 'score-5'],
     usuariosAtribuidos: ['usr-1', 'usr-2'],
-    gatilhos: [{ aPartirDePontos: 30, trilhaId: 'trail-1' }],
     createdAt: '2025-01-20T09:00:00Z',
     updatedAt: '2025-01-20T09:00:00Z',
   },

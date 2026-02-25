@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Policy, PolicyEventConfig, PolicyTrigger, PolicyTrackingType, ScoreRule, Trail } from '../../types/risk.types';
+import type { Policy, ScoreRule, Trail } from '../../types/risk.types';
 import type { PlatformUser } from '../../mocks/risk.mock';
-import { EVENT_TYPE_LABELS } from '../../constants/eventTypes';
 import { FieldErrorIcon } from '../shared/FieldErrorIcon';
-import { IconTrash } from '../shared/Icons';
 import { ModalSelect, type ModalSelectOption } from '../shared/ModalSelect';
 
 interface PolicyFormProps {
   id?: string;
   initialData?: Partial<Policy> | null;
+  /** Lista completa de eventos (mesma da tela Pontuações) para "Eventos contemplados" */
   scores: ScoreRule[];
+  /** Lista de tratativas (trilhas) ativas para vínculo único */
   trails: Trail[];
   users: PlatformUser[];
   onSubmit: (data: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -18,36 +18,15 @@ interface PolicyFormProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-const TRACKING_OPTIONS: ModalSelectOption[] = [
-  { value: 'motorista', label: 'Por motorista' },
-  { value: 'veiculo', label: 'Por veículo' },
-];
-
-const DURACAO_ATIVA_OPTIONS: ModalSelectOption[] = [
-  { value: '15min', label: '15 min' },
-  { value: '30min', label: '30 min' },
-  { value: '1h', label: '1 h' },
-  { value: '2h', label: '2 h' },
-  { value: '3h', label: '3 h' },
-  { value: '4h', label: '4 h' },
-  { value: '5h', label: '5 h' },
-  { value: '6h', label: '6 h' },
-  { value: '7h', label: '7 h' },
-  { value: '8h', label: '8 h' },
-  { value: '9h', label: '9 h' },
-  { value: '10h', label: '10 h' },
-  { value: '11h', label: '11 h' },
-  { value: '12h', label: '12 h' },
-];
+const JANELA_OPTIONS: ModalSelectOption[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((h) => ({
+  value: String(h),
+  label: `${h}h`,
+}));
 
 const STATUS_OPTIONS: ModalSelectOption[] = [
   { value: 'ativo', label: 'Ativo' },
   { value: 'inativo', label: 'Inativo' },
 ];
-
-const MAX_GATILHOS = 3;
-const DEFAULT_DURACAO = '1h';
-const DEFAULT_PONTOS = 0;
 
 export const PolicyForm: React.FC<PolicyFormProps> = ({
   id,
@@ -62,11 +41,9 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
 }) => {
   const [name, setName] = useState(initialData?.name ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
-  const [tipoAcompanhamento, setTipoAcompanhamento] = useState<PolicyTrackingType>(
-    initialData?.tipoAcompanhamento ?? 'motorista'
-  );
-  const [configEventos, setConfigEventos] = useState<Record<string, PolicyEventConfig>>(
-    () => initialData?.configEventos ?? {}
+  const [janela, setJanela] = useState(initialData?.janela ?? 2);
+  const [eventosContemplados, setEventosContemplados] = useState<string[]>(
+    initialData?.eventosContemplados ?? []
   );
   const [usuariosAll, setUsuariosAll] = useState<boolean>(
     initialData?.usuariosAtribuidos === 'all' || !Array.isArray(initialData?.usuariosAtribuidos)
@@ -74,33 +51,13 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
   const [usuariosSelected, setUsuariosSelected] = useState<string[]>(
     Array.isArray(initialData?.usuariosAtribuidos) ? initialData.usuariosAtribuidos : []
   );
-  const [gatilhos, setGatilhos] = useState<PolicyTrigger[]>(() => {
-    const g = initialData?.gatilhos ?? [];
-    if (g.length > 0) return g.slice(0, MAX_GATILHOS);
-    return [{ aPartirDePontos: 0, trilhaId: '' }];
-  });
+  const [trailId, setTrailId] = useState<string>(initialData?.trailId ?? '');
   const [active, setActive] = useState(initialData?.active ?? true);
-  const [eventSearchQuery, setEventSearchQuery] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{
     name?: boolean;
-    configEventos?: boolean;
+    eventosContemplados?: boolean;
     usuarios?: boolean;
-    gatilhos?: boolean;
   }>({});
-
-  const filteredScores = useMemo(() => {
-    const q = eventSearchQuery.trim().toLowerCase();
-    const list = q
-      ? scores.filter((s) => s.name.toLowerCase().includes(q))
-      : scores.slice();
-    return list.sort((a, b) => {
-      const aIn = !!configEventos[a.id];
-      const bIn = !!configEventos[b.id];
-      if (aIn && !bIn) return -1;
-      if (!aIn && bIn) return 1;
-      return 0;
-    });
-  }, [scores, eventSearchQuery, configEventos]);
 
   const activeUsers = useMemo(() => users.filter((u) => u.active), [users]);
   const activeTrails = useMemo(() => trails.filter((t) => t.active), [trails]);
@@ -110,83 +67,42 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
   );
 
   const isDirty = useMemo(() => {
-    if (!initialData)
-      return (
-        name !== '' ||
-        description !== '' ||
-        Object.keys(configEventos).length > 0 ||
-        !usuariosAll ||
-        usuariosSelected.length > 0 ||
-        gatilhos.length > 0
-      );
+    if (!initialData) return name !== '' || description !== '' || eventosContemplados.length > 0 || !usuariosAll || usuariosSelected.length > 0 || trailId !== '';
     if (name.trim() !== (initialData.name ?? '').trim()) return true;
     if ((description ?? '') !== (initialData.description ?? '')) return true;
-    if (tipoAcompanhamento !== (initialData.tipoAcompanhamento ?? 'motorista')) return true;
-    const initConfig = initialData.configEventos ?? {};
-    const keys = Object.keys(configEventos);
-    const initKeys = Object.keys(initConfig);
-    if (keys.length !== initKeys.length || keys.some((k) => !initKeys.includes(k))) return true;
-    for (const k of keys) {
-      if (
-        configEventos[k].pontos !== (initConfig[k]?.pontos ?? DEFAULT_PONTOS) ||
-        configEventos[k].duracaoAtiva !== (initConfig[k]?.duracaoAtiva ?? DEFAULT_DURACAO)
-      )
-        return true;
-    }
+    if (janela !== (initialData.janela ?? 2)) return true;
+    const initEventos = initialData.eventosContemplados ?? [];
+    if (eventosContemplados.length !== initEventos.length || [...eventosContemplados].sort().join(',') !== [...initEventos].sort().join(',')) return true;
     const initAll = initialData.usuariosAtribuidos === 'all' || !Array.isArray(initialData.usuariosAtribuidos);
     if (usuariosAll !== initAll) return true;
     if (!usuariosAll) {
       const initSel = Array.isArray(initialData.usuariosAtribuidos) ? initialData.usuariosAtribuidos : [];
-      if (usuariosSelected.length !== initSel.length || [...usuariosSelected].sort().join(',') !== [...initSel].sort().join(','))
-        return true;
+      if (usuariosSelected.length !== initSel.length || [...usuariosSelected].sort().join(',') !== [...initSel].sort().join(',')) return true;
     }
-    const initG = initialData.gatilhos ?? [];
-    if (gatilhos.length !== initG.length) return true;
-    for (let i = 0; i < gatilhos.length; i++) {
-      if (gatilhos[i].aPartirDePontos !== initG[i]?.aPartirDePontos || gatilhos[i].trilhaId !== initG[i]?.trilhaId)
-        return true;
-    }
+    if ((trailId || '') !== (initialData.trailId ?? '')) return true;
     if (active !== (initialData.active ?? true)) return true;
     return false;
-  }, [initialData, name, description, tipoAcompanhamento, configEventos, usuariosAll, usuariosSelected, gatilhos, active]);
+  }, [initialData, name, description, janela, eventosContemplados, usuariosAll, usuariosSelected, trailId, active]);
 
   useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
   const toggleEvento = (scoreId: string) => {
-    setConfigEventos((prev) => {
-      const next = { ...prev };
-      if (next[scoreId]) {
-        delete next[scoreId];
-        return next;
-      }
-      next[scoreId] = { pontos: DEFAULT_PONTOS, duracaoAtiva: DEFAULT_DURACAO };
-      return next;
-    });
-    if (fieldErrors.configEventos) setFieldErrors((err) => ({ ...err, configEventos: false }));
-  };
-
-  const setEventoConfig = (scoreId: string, patch: Partial<PolicyEventConfig>) => {
-    setConfigEventos((prev) => {
-      const cur = prev[scoreId];
-      if (!cur) return prev;
-      return { ...prev, [scoreId]: { ...cur, ...patch } };
-    });
+    setEventosContemplados((prev) =>
+      prev.includes(scoreId) ? prev.filter((id) => id !== scoreId) : [...prev, scoreId]
+    );
+    if (fieldErrors.eventosContemplados) setFieldErrors((err) => ({ ...err, eventosContemplados: false }));
   };
 
   const selectAllEventos = (checked: boolean) => {
-    if (checked) {
-      const next: Record<string, PolicyEventConfig> = {};
-      scores.forEach((s) => {
-        next[s.id] = configEventos[s.id] ?? { pontos: DEFAULT_PONTOS, duracaoAtiva: DEFAULT_DURACAO };
-      });
-      setConfigEventos(next);
-    } else setConfigEventos({});
-    if (fieldErrors.configEventos) setFieldErrors((err) => ({ ...err, configEventos: false }));
+    if (checked) setEventosContemplados(scores.map((s) => s.id));
+    else setEventosContemplados([]);
+    if (fieldErrors.eventosContemplados) setFieldErrors((err) => ({ ...err, eventosContemplados: false }));
   };
 
-  const allEventosSelected = scores.length > 0 && Object.keys(configEventos).length === scores.length;
+  const allEventosSelected =
+    scores.length > 0 && eventosContemplados.length === scores.length;
 
   const toggleUsuario = (userId: string) => {
     setUsuariosSelected((prev) =>
@@ -195,69 +111,29 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
     if (fieldErrors.usuarios) setFieldErrors((err) => ({ ...err, usuarios: false }));
   };
 
-  const gatilhosOrderValid = useMemo(() => {
-    if (gatilhos.length <= 1) return true;
-    for (let i = 1; i < gatilhos.length; i++) {
-      if (gatilhos[i].aPartirDePontos <= gatilhos[i - 1].aPartirDePontos) return false;
-    }
-    return true;
-  }, [gatilhos]);
-
-  const addGatilho = () => {
-    if (gatilhos.length >= MAX_GATILHOS) return;
-    const lastPoints = gatilhos.length ? gatilhos[gatilhos.length - 1].aPartirDePontos : 0;
-    setGatilhos((prev) => [...prev, { aPartirDePontos: lastPoints + 10, trilhaId: '' }]);
-    if (fieldErrors.gatilhos) setFieldErrors((err) => ({ ...err, gatilhos: false }));
-  };
-
-  const updateGatilho = (index: number, patch: Partial<PolicyTrigger>) => {
-    setGatilhos((prev) =>
-      prev.map((g, i) => (i === index ? { ...g, ...patch } : g))
-    );
-    if (fieldErrors.gatilhos) setFieldErrors((err) => ({ ...err, gatilhos: false }));
-  };
-
-  const removeGatilho = (index: number) => {
-    if (gatilhos.length <= 1) return;
-    setGatilhos((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const nameTrimmed = name.trim();
     const nameInvalid = !nameTrimmed;
-    const eventosInvalid = Object.keys(configEventos).length === 0;
+    const eventosInvalid = eventosContemplados.length === 0;
     const usuariosInvalid = !usuariosAll && usuariosSelected.length === 0;
-    const gatilhosInvalid =
-      gatilhos.length === 0 ||
-      !gatilhosOrderValid ||
-      gatilhos.some((g) => g.trilhaId === '');
-    const errors = {
-      name: nameInvalid,
-      configEventos: eventosInvalid,
-      usuarios: usuariosInvalid,
-      gatilhos: gatilhosInvalid,
-    };
+    const errors = { name: nameInvalid, eventosContemplados: eventosInvalid, usuarios: usuariosInvalid };
     setFieldErrors(errors);
-    if (nameInvalid || eventosInvalid || usuariosInvalid || gatilhosInvalid) return;
-    const gatilhosClean = gatilhos
-      .filter((g) => g.trilhaId)
-      .map((g) => ({ aPartirDePontos: Math.max(0, g.aPartirDePontos), trilhaId: g.trilhaId }))
-      .sort((a, b) => a.aPartirDePontos - b.aPartirDePontos);
+    if (nameInvalid || eventosInvalid || usuariosInvalid) return;
     onSubmit({
       name: nameTrimmed,
       description: description || undefined,
-      tipoAcompanhamento,
-      configEventos,
+      janela,
+      eventosContemplados,
       usuariosAtribuidos: usuariosAll ? 'all' : usuariosSelected,
-      gatilhos: gatilhosClean,
+      trailId: trailId || undefined,
       active,
     });
   };
 
   return (
     <form id={id} className="policy-form form-card" onSubmit={handleSubmit}>
-      <div className="policy-form-row policy-form-row--name-tracking">
+      <div className="policy-form-row policy-form-row--name-janela">
         <div className={`form-group ${fieldErrors.name ? 'has-error' : ''}`}>
           <div className="form-group__label-row">
             <label htmlFor="policy-name">Nome</label>
@@ -285,12 +161,12 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
         </div>
         <div className="form-group">
           <ModalSelect
-            id="policy-tracking"
-            label="Tipo de acompanhamento"
-            value={tipoAcompanhamento}
-            onChange={(v) => setTipoAcompanhamento(v as PolicyTrackingType)}
-            options={TRACKING_OPTIONS}
-            placeholder="Selecione"
+            id="policy-janela"
+            label="Janela de tempo"
+            value={String(janela)}
+            onChange={(v) => setJanela(Number(v))}
+            options={JANELA_OPTIONS}
+            placeholder="Selecione a janela"
           />
         </div>
       </div>
@@ -307,235 +183,101 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
         />
       </div>
 
-      <div className={`form-group ${fieldErrors.configEventos ? 'has-error' : ''}`}>
-        <div className="policy-form-eventos-section">
-          <div className="trail-form-etapas-header policy-form-gatilhos-header">
-            <label className="policy-form-gatilhos-title">Configuração por evento</label>
-          </div>
-          <div className={`policy-form-eventos-section__content ${fieldErrors.configEventos ? 'has-error' : ''}`}>
-            {fieldErrors.configEventos && (
-              <span className="form-group__field-error-icon form-group__field-error-icon--block">
-                <FieldErrorIcon />
-              </span>
-            )}
-            <p className="form-hint policy-form-eventos-section-hint">
-              Selecione os eventos desta política e defina pontuação e duração ativa para cada um.
-            </p>
-            <div className="form-group policy-form-eventos-search">
-              <label htmlFor="policy-eventos-search" className="visually-hidden">
-                Buscar evento por nome
-              </label>
-              <input
-                id="policy-eventos-search"
-                type="text"
-                value={eventSearchQuery}
-                onChange={(e) => setEventSearchQuery(e.target.value)}
-                placeholder="Filtrar por nome do evento"
-                className="form-control"
-                autoComplete="off"
-              />
-            </div>
-            <div className="form-group policy-form-checkbox-option">
-              <input
-                id="policy-eventos-all"
-                type="checkbox"
-                checked={allEventosSelected}
-                onChange={(e) => selectAllEventos(e.target.checked)}
-              />
-              <label htmlFor="policy-eventos-all">Selecionar todos</label>
-            </div>
-            <div className="policy-form-eventos-config-table-wrap">
-              <table className="list-table policy-form-eventos-config">
-              <thead>
-                <tr>
-                  <th style={{ width: '2rem' }}></th>
-                  <th>Evento</th>
-                  <th>Tipo</th>
-                  <th>Pontos</th>
-                  <th>Duração ativa</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredScores.map((score) => {
-                  const included = !!configEventos[score.id];
-                  return (
-                    <tr key={score.id}>
-                      <td>
-                        <input
-                          id={`policy-evento-${score.id}`}
-                          type="checkbox"
-                          checked={included}
-                          onChange={() => toggleEvento(score.id)}
-                        />
-                      </td>
-                      <td>
-                        <label htmlFor={`policy-evento-${score.id}`}>{score.name}</label>
-                      </td>
-                      <td>{EVENT_TYPE_LABELS[score.eventType]}</td>
-                      <td>
-                        {included ? (
-                          <input
-                            type="number"
-                            min={0}
-                            max={999}
-                            value={configEventos[score.id].pontos}
-                            onChange={(e) => {
-                              const v = Math.min(999, Math.max(0, Number(e.target.value) || 0));
-                              setEventoConfig(score.id, { pontos: v });
-                            }}
-                            className="input-narrow policy-form-eventos-pontos-input"
-                            inputMode="numeric"
-                          />
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td>
-                        {included ? (
-                          <ModalSelect
-                            id={`policy-evento-duracao-${score.id}`}
-                            value={configEventos[score.id].duracaoAtiva}
-                            onChange={(v) => setEventoConfig(score.id, { duracaoAtiva: v })}
-                            options={DURACAO_ATIVA_OPTIONS}
-                            placeholder="Duração"
-                          />
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          </div>
+      <div className={`form-group ${fieldErrors.eventosContemplados ? 'has-error' : ''}`}>
+        <div className="form-group__label-row">
+          <label>Eventos contemplados</label>
         </div>
-      </div>
-
-      <div className={`form-group ${fieldErrors.gatilhos ? 'has-error' : ''}`}>
-        <div className="policy-form-gatilhos-section">
-          <div className="trail-form-etapas-header policy-form-gatilhos-header">
-            <label className="policy-form-gatilhos-title">Gatilhos (1 a {MAX_GATILHOS})</label>
-            {gatilhos.length < MAX_GATILHOS && (
-              <button type="button" className="btn btn-sm btn-primary" onClick={addGatilho}>
-                + Adicionar gatilho
-              </button>
-            )}
+        <div className="form-group__block-with-error">
+          {fieldErrors.eventosContemplados && (
+            <span className="form-group__field-error-icon form-group__field-error-icon--block">
+              <FieldErrorIcon />
+            </span>
+          )}
+          <div className="form-group policy-form-checkbox-option">
+            <input
+              id="policy-eventos-all"
+              type="checkbox"
+              checked={allEventosSelected}
+              onChange={(e) => selectAllEventos(e.target.checked)}
+            />
+            <label htmlFor="policy-eventos-all">Selecionar todos</label>
           </div>
-          <div className="trail-steps-wrapper-outer">
-            <div className={`trail-steps-wrapper ${fieldErrors.gatilhos ? 'trail-steps-wrapper--error' : ''}`}>
-              {fieldErrors.gatilhos && (
-                <span className="trail-steps-wrapper__field-error-icon">
-                  <FieldErrorIcon className="level-tooltip-wrap--tooltip-right" />
-                </span>
-              )}
-              <div className="trail-steps">
-                {gatilhos.map((g, index) => (
-                  <div key={index} className="trail-step-card">
-                    <div className="trail-step-header">
-                      <span className="trail-step-title">Gatilho {index + 1}</span>
-                      {gatilhos.length > 1 && (
-                        <button
-                          type="button"
-                          className="trail-step-remove-btn"
-                          onClick={() => removeGatilho(index)}
-                          aria-label="Remover gatilho"
-                        >
-                          <IconTrash />
-                        </button>
-                      )}
-                    </div>
-                    <div className="trail-step-row policy-form-gatilho-body">
-                      <div className="trail-step-action policy-form-gatilho-points-inline">
-                        <label htmlFor={`gatilho-points-${index}`}>A partir de</label>
-                        <input
-                          id={`gatilho-points-${index}`}
-                          type="number"
-                          min={0}
-                          max={999}
-                          value={g.aPartirDePontos}
-                          onChange={(e) => {
-                            const v = Math.min(999, Math.max(0, Number(e.target.value) || 0));
-                            updateGatilho(index, { aPartirDePontos: v });
-                          }}
-                          className="policy-form-gatilho-input-points"
-                          inputMode="numeric"
-                        />
-                      </div>
-                      <div className="trail-step-action policy-form-gatilho-trail-inline">
-                        <ModalSelect
-                          id={`gatilho-trail-${index}`}
-                          label="Solicitar tratativa"
-                          value={g.trilhaId}
-                          onChange={(v) => updateGatilho(index, { trilhaId: v })}
-                          options={trailOptions}
-                          placeholder="Selecione a trilha"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+          <div className="policy-form-eventos-list">
+            {scores.map((score) => (
+              <div key={score.id} className="form-group policy-form-checkbox-option">
+                <input
+                  id={`policy-evento-${score.id}`}
+                  type="checkbox"
+                  checked={eventosContemplados.includes(score.id)}
+                  onChange={() => toggleEvento(score.id)}
+                />
+                <label htmlFor={`policy-evento-${score.id}`}>{score.name}</label>
               </div>
-            </div>
+            ))}
           </div>
-          <p className="form-hint policy-form-gatilhos-hint">
-            A partir de X pontos (soma dos eventos ativos), solicitar a tratativa selecionada. Ordem crescente.
-          </p>
         </div>
       </div>
 
       <div className={`form-group ${fieldErrors.usuarios ? 'has-error' : ''}`}>
-        <div className="policy-form-usuarios-section">
-          <div className="trail-form-etapas-header policy-form-gatilhos-header">
-            <label className="policy-form-gatilhos-title">Usuários atribuídos</label>
-          </div>
-          <div className="policy-form-usuarios-section__content">
-            {fieldErrors.usuarios && (
-              <span className="form-group__field-error-icon form-group__field-error-icon--block">
-                <FieldErrorIcon />
-              </span>
-            )}
-            <div className="form-group policy-form-checkbox-option">
-              <input
-                id="policy-users-all"
-                type="radio"
-                name="policy-users"
-                checked={usuariosAll}
-                onChange={() => {
-                  setUsuariosAll(true);
-                  if (fieldErrors.usuarios) setFieldErrors((err) => ({ ...err, usuarios: false }));
-                }}
-              />
-              <label htmlFor="policy-users-all">Todos os usuários</label>
-            </div>
-            <div className="form-group policy-form-checkbox-option">
-              <input
-                id="policy-users-specific"
-                type="radio"
-                name="policy-users"
-                checked={!usuariosAll}
-                onChange={() => setUsuariosAll(false)}
-              />
-              <label htmlFor="policy-users-specific">Usuários específicos</label>
-            </div>
-            {!usuariosAll && (
-              <div className="policy-form-usuarios-list">
-                {activeUsers.map((user) => (
-                  <div key={user.id} className="form-group policy-form-checkbox-option">
-                    <input
-                      id={`policy-user-${user.id}`}
-                      type="checkbox"
-                      checked={usuariosSelected.includes(user.id)}
-                      onChange={() => toggleUsuario(user.id)}
-                    />
-                    <label htmlFor={`policy-user-${user.id}`}>{user.name}</label>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="form-group__label-row">
+          <label>Usuários atribuídos</label>
         </div>
+        <div className="form-group__block-with-error">
+          {fieldErrors.usuarios && (
+            <span className="form-group__field-error-icon form-group__field-error-icon--block">
+              <FieldErrorIcon />
+            </span>
+          )}
+          <div className="form-group policy-form-checkbox-option">
+            <input
+              id="policy-users-all"
+              type="radio"
+              name="policy-users"
+              checked={usuariosAll}
+              onChange={() => {
+                setUsuariosAll(true);
+                if (fieldErrors.usuarios) setFieldErrors((err) => ({ ...err, usuarios: false }));
+              }}
+            />
+            <label htmlFor="policy-users-all">Todos os usuários</label>
+          </div>
+          <div className="form-group policy-form-checkbox-option">
+            <input
+              id="policy-users-specific"
+              type="radio"
+              name="policy-users"
+            checked={!usuariosAll}
+            onChange={() => setUsuariosAll(false)}
+          />
+          <label htmlFor="policy-users-specific">Usuários específicos</label>
+        </div>
+        {!usuariosAll && (
+          <div className="policy-form-usuarios-list">
+            {activeUsers.map((user) => (
+              <div key={user.id} className="form-group policy-form-checkbox-option">
+                <input
+                  id={`policy-user-${user.id}`}
+                  type="checkbox"
+                  checked={usuariosSelected.includes(user.id)}
+                  onChange={() => toggleUsuario(user.id)}
+                />
+                <label htmlFor={`policy-user-${user.id}`}>{user.name}</label>
+              </div>
+            ))}
+          </div>
+        )}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <ModalSelect
+          id="policy-trail"
+          label="Tratativa ativa"
+          value={trailId}
+          onChange={setTrailId}
+          options={trailOptions}
+          placeholder="Selecione uma tratativa"
+        />
       </div>
 
       <div className="form-group">

@@ -1,6 +1,6 @@
-# Módulo de Eventos – Regras de Tratativa
+# Módulo de Eventos – Regras de Risco
 
-Projeto **Módulo de Eventos** (Regras de Tratativa) | Creare Sistemas.
+Projeto **Módulo de Eventos** (Regras de Risco) | Creare Sistemas.
 
 ## Onde usar
 
@@ -25,7 +25,7 @@ Acesse: **http://localhost:4001**
 
 - **Sidebar** à esquerda (Creare Sistemas)
 - **Header** com título “Módulo de Eventos”
-- **Conteúdo**: módulo Regras de Tratativa com 4 abas  
+- **Conteúdo**: módulo Regras de Risco com 4 abas  
   (Política de Avaliação, Pontuações, Tratativas, Histórico)
 
 ## Tecnologias
