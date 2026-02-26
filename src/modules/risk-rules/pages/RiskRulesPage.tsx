@@ -37,6 +37,14 @@ export const RiskRulesPage: React.FC = () => {
     if (typeFilter === 'todos') return scores;
     return scores.filter((s) => s.eventType === typeFilter);
   }, [scores, typeFilter]);
+
+  /** Aviso fixo: eventos que não estão em nenhuma política */
+  const policyCoverageWarning = useMemo(() => {
+    const eventIdsCovered = new Set(policies.flatMap((p) => Object.keys(p.configEventos ?? {})));
+    const missingCount = scores.filter((s) => !eventIdsCovered.has(s.id)).length;
+    if (missingCount === 0) return null;
+    return `Faltam ${missingCount} evento(s) a serem contemplados nas políticas.`;
+  }, [policies, scores]);
   const [treatments, setTreatments] = useState(mockTreatments);
   const [trails, setTrails] = useState<Trail[]>(mockTrails);
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
@@ -174,32 +182,20 @@ export const RiskRulesPage: React.FC = () => {
   };
 
   const handlePolicySubmit = (data: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const otherActivePolicies = policies.filter(
-      (p) => p.active && p.id !== policyEditing?.id
-    );
-    const overlap = otherActivePolicies.some((p) =>
-      eventIdsOverlap(p.configEventos, data.configEventos)
-    );
-    if (overlap) {
-      showToast(
-        'Um evento não pode estar em duas políticas ativas. Remova o evento de outra política primeiro.',
-        'warning'
+    if (data.active) {
+      const otherActivePolicies = policies.filter(
+        (p) => p.active && p.id !== policyEditing?.id
       );
-      return;
-    }
-    const allScoreIds = new Set(scores.map((s) => s.id));
-    const otherPolicies = policies.filter((p) => p.id !== policyEditing?.id);
-    const eventIdsAfterSave = new Set([
-      ...otherPolicies.flatMap((p) => Object.keys(p.configEventos)),
-      ...Object.keys(data.configEventos),
-    ]);
-    const missingCount = [...allScoreIds].filter((id) => !eventIdsAfterSave.has(id)).length;
-    if (missingCount > 0) {
-      showToast(
-        `Cobertura total: todos os eventos devem estar em ao menos uma política. ${missingCount} evento(s) ficariam sem política.`,
-        'warning'
+      const overlap = otherActivePolicies.some((p) =>
+        eventIdsOverlap(p.configEventos, data.configEventos)
       );
-      return;
+      if (overlap) {
+        showToast(
+          'Um evento não pode estar em duas políticas ativas. Remova o evento de outra política primeiro.',
+          'warning'
+        );
+        return;
+      }
     }
     if (policyEditing) {
       setPolicies((prev) =>
@@ -551,6 +547,11 @@ export const RiskRulesPage: React.FC = () => {
       <div className="page-content risk-rules-content">
         {activeTab === 'policy' && (
           <>
+            {policyCoverageWarning && (
+              <div className="policy-coverage-warning" role="alert">
+                {policyCoverageWarning}
+              </div>
+            )}
             {policyFormOpen ? (
               <CrModal
                 open
