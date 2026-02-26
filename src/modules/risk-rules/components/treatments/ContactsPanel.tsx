@@ -29,9 +29,11 @@ interface ContactsPanelProps {
   contacts: Contact[];
   onSave: (contact: Omit<Contact, 'id'> & { id?: string }) => void;
   onDelete: (contact: Contact) => void;
+  /** Mensagem exibida em toast de aviso (ex.: validação de horários) */
+  onValidationError?: (message: string) => void;
 }
 
-export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, onDelete }) => {
+export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, onDelete, onValidationError }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
   const [name, setName] = useState('');
@@ -89,6 +91,14 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
     const errors = { name: nameInvalid, phone: phoneInvalid, email: emailInvalid };
     setFieldErrors(errors);
     if (nameInvalid || phoneInvalid || emailInvalid) return;
+
+    const startFilled = timeStart.trim() !== '';
+    const endFilled = timeEnd.trim() !== '';
+    if (startFilled !== endFilled) {
+      onValidationError?.('Preencha os dois campos de horário (início e fim).');
+      return;
+    }
+
     const turnosParsed = turnosValue
       ? (turnosValue.split(',').map((v) => v.trim()).filter(Boolean) as ContactShift[])
       : undefined;

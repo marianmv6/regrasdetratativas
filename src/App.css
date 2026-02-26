@@ -2148,6 +2148,11 @@ body.cr-fullscreen-modal-open .app-content {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
+/* Alinhar título da seção (ex.: "Contatos que recebem email") ao início do conteúdo da tabela (coluna Contato) */
+.trail-step-config > label:first-child {
+  padding-left: calc(2.5rem + 0.6rem * 2);
+  box-sizing: border-box;
+}
 /* Mesma altura entre "Selecionar todos" e a lista que entre "Pontuação mínima" e o input (0.25rem) */
 .trail-step-config > .policy-form-checkbox-option {
   margin-bottom: 0;
@@ -2175,20 +2180,24 @@ body.cr-fullscreen-modal-open .app-content {
 .trail-step-contacts-table {
   width: 100%;
   min-width: 20rem;
+  table-layout: fixed;
 }
 .trail-step-contacts-table th,
 .trail-step-contacts-table td {
   padding: 0.4rem 0.6rem;
   vertical-align: middle;
   font-size: 0.875rem;
+  box-sizing: border-box;
 }
 .trail-step-contacts-table th {
   font-weight: 600;
   color: var(--color-text-secondary);
   text-align: left;
 }
+.trail-step-contacts-table th:first-child,
 .trail-step-contacts-table td:first-child {
   width: 2.5rem;
+  min-width: 2.5rem;
 }
 .trail-step-contacts-table label {
   font-weight: normal;

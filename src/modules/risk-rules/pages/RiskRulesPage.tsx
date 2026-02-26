@@ -666,6 +666,7 @@ export const RiskRulesPage: React.FC = () => {
           contacts={contacts}
           onSave={handleContactSave}
           onDelete={handleContactDelete}
+          onValidationError={(msg) => showToast(msg, 'warning')}
         />
       </CrDrawer>
 
