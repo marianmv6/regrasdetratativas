@@ -62,6 +62,34 @@ export const RiskRulesPage: React.FC = () => {
       ...prev,
     ]);
   };
+
+  /** Gera texto "Campo: de 'valor original' para 'novo valor'" para cada diferença (ação update) */
+  const buildUpdateDescription = <T extends Record<string, unknown>>(
+    oldObj: T,
+    newObj: T,
+    fields: { key: keyof T; label: string; format?: (v: unknown) => string }[]
+  ): string => {
+    const fmt = (v: unknown, f?: (x: unknown) => string) => (f ? f(v) : String(v ?? '—'));
+    const parts: string[] = [];
+    for (const { key, label, format } of fields) {
+      const oldVal = oldObj[key];
+      const newVal = newObj[key];
+      if (oldVal === newVal) continue;
+      const oldStr = fmt(oldVal, format);
+      const newStr = fmt(newVal, format);
+      parts.push(`${label}: de "${oldStr}" para "${newStr}"`);
+    }
+    return parts.length ? parts.join('; ') : '';
+  };
+
+  const formatActive = (v: unknown) => (v ? 'Ativo' : 'Inativo');
+  const formatTipoAcomp = (v: unknown) => (v === 'veiculo' ? 'Por veículo' : 'Por motorista');
+  const formatRiskLevel = (v: unknown) => {
+    const m: Record<string, string> = { low: 'Baixo', medium: 'Médio', high: 'Alto', critical: 'Crítico' };
+    return m[String(v)] ?? String(v ?? '—');
+  };
+  const formatTrackingType = (v: unknown) => (v === 'veiculo' ? 'Por veículo' : 'Por motorista');
+  const formatMode = (v: unknown) => (v === 'levels' ? 'Por nível' : 'Por pontuação');
   const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
   const [voiceMessagesDrawerOpen, setVoiceMessagesDrawerOpen] = useState(false);
 
@@ -184,12 +212,22 @@ export const RiskRulesPage: React.FC = () => {
             : p
         )
       );
+      const policyChanges = buildUpdateDescription(
+        policyEditing,
+        { ...policyEditing, ...data },
+        [
+          { key: 'name', label: 'Nome' },
+          { key: 'description', label: 'Descrição' },
+          { key: 'tipoAcompanhamento', label: 'Tipo de acompanhamento', format: formatTipoAcomp },
+          { key: 'active', label: 'Status', format: formatActive },
+        ]
+      );
       addHistoryEntry({
         entityType: 'policy',
         entityId: policyEditing.id,
         entityName: data.name,
         action: 'update',
-        actionDescription: 'Política atualizada.',
+        actionDescription: policyChanges ? `Política atualizada. ${policyChanges}` : 'Política atualizada.',
       });
       if (data.active) {
         setAppliedConfirm({ open: true, pendingToast: 'Política atualizada com sucesso.' });
@@ -229,12 +267,22 @@ export const RiskRulesPage: React.FC = () => {
             : t
         )
       );
+      const treatmentChanges = buildUpdateDescription(
+        treatmentEditing,
+        { ...treatmentEditing, ...data },
+        [
+          { key: 'name', label: 'Nome' },
+          { key: 'description', label: 'Descrição' },
+          { key: 'riskLevel', label: 'Nível de risco', format: formatRiskLevel },
+          { key: 'active', label: 'Status', format: formatActive },
+        ]
+      );
       addHistoryEntry({
         entityType: 'treatment',
         entityId: treatmentEditing.id,
         entityName: data.name,
         action: 'update',
-        actionDescription: 'Tratamento atualizado.',
+        actionDescription: treatmentChanges ? `Tratamento atualizado. ${treatmentChanges}` : 'Tratamento atualizado.',
       });
       showToast('Tratamento atualizado com sucesso.');
     } else {
@@ -304,12 +352,22 @@ export const RiskRulesPage: React.FC = () => {
             : t
         )
       );
+      const trailChanges = buildUpdateDescription(
+        trailEditing,
+        { ...trailEditing, ...data },
+        [
+          { key: 'name', label: 'Nome' },
+          { key: 'trackingType', label: 'Tipo de acompanhamento', format: formatTrackingType },
+          { key: 'mode', label: 'Modo', format: formatMode },
+          { key: 'active', label: 'Status', format: formatActive },
+        ]
+      );
       addHistoryEntry({
         entityType: 'treatment',
         entityId: trailEditing.id,
         entityName: data.name,
         action: 'update',
-        actionDescription: 'Tratativa atualizada.',
+        actionDescription: trailChanges ? `Tratativa atualizada. ${trailChanges}` : 'Tratativa atualizada.',
       });
       showToast('Trilha atualizada com sucesso.');
     } else {
@@ -352,15 +410,28 @@ export const RiskRulesPage: React.FC = () => {
 
   const handleContactSave = (data: Omit<Contact, 'id'> & { id?: string }) => {
     if (data.id) {
+      const prevContact = contacts.find((c) => c.id === data.id);
       setContacts((prev) =>
         prev.map((c) => (c.id === data.id ? { ...c, ...data } : c))
       );
+      const contactChanges =
+        prevContact &&
+        buildUpdateDescription(
+          prevContact as Record<string, unknown>,
+          { ...prevContact, ...data } as Record<string, unknown>,
+          [
+            { key: 'name', label: 'Nome' },
+            { key: 'phone', label: 'Telefone' },
+            { key: 'email', label: 'Email' },
+            { key: 'description', label: 'Descrição' },
+          ]
+        );
       addHistoryEntry({
         entityType: 'contact',
         entityId: data.id,
         entityName: data.name || data.id,
         action: 'update',
-        actionDescription: 'Contato atualizado.',
+        actionDescription: contactChanges ? `Contato atualizado. ${contactChanges}` : 'Contato atualizado.',
       });
       showToast('Contato atualizado.');
     } else {
@@ -400,15 +471,29 @@ export const RiskRulesPage: React.FC = () => {
 
   const handleVoiceMessageSave = (data: Omit<VoiceMessage, 'id'> & { id?: string }) => {
     if (data.id) {
+      const prevMsg = voiceMessages.find((m) => m.id === data.id);
       setVoiceMessages((prev) =>
         prev.map((m) => (m.id === data.id ? { ...m, ...data } : m))
       );
+      const voiceChanges =
+        prevMsg &&
+        buildUpdateDescription(
+          prevMsg as Record<string, unknown>,
+          { ...prevMsg, ...data } as Record<string, unknown>,
+          [
+            { key: 'identification', label: 'Identificação' },
+            { key: 'message', label: 'Mensagem' },
+            { key: 'language', label: 'Idioma' },
+            { key: 'device', label: 'Dispositivo' },
+            { key: 'active', label: 'Status', format: formatActive },
+          ]
+        );
       addHistoryEntry({
         entityType: 'voice',
         entityId: data.id,
         entityName: data.identification || data.id,
         action: 'update',
-        actionDescription: 'Mensagem de voz atualizada.',
+        actionDescription: voiceChanges ? `Mensagem de voz atualizada. ${voiceChanges}` : 'Mensagem de voz atualizada.',
       });
       showToast('Mensagem de voz atualizada.');
     } else {

@@ -74,7 +74,16 @@ export const HistoryList: React.FC<HistoryListProps> = ({ entries, loading }) =>
             <tr key={entry.id}>
               <td>{formatDate(entry.timestamp)}</td>
               <td>{entityLabels[entry.entityType]}</td>
-              <td>{entry.actionDescription ?? actionLabels[entry.action]}</td>
+              <td className="history-list__action-cell">
+                {entry.action === 'update' && entry.actionDescription?.includes('; ')
+                  ? entry.actionDescription.split('; ').map((part, i) => (
+                      <span key={i} className="history-list__action-detail-line">
+                        {i > 0 && <br />}
+                        {part}
+                      </span>
+                    ))
+                  : (entry.actionDescription ?? actionLabels[entry.action])}
+              </td>
               <td>{entry.userEmail ?? entry.userName ?? '-'}</td>
             </tr>
           ))}

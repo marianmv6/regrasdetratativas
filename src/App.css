@@ -849,6 +849,15 @@ html, body {
   width: 24%;
   text-align: left;
 }
+.history-list__action-cell {
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  vertical-align: top;
+}
+.history-list__action-detail-line {
+  display: inline;
+}
 
 /* Histórico vazio: ilustração e mensagem centralizados no centro da página */
 .history-list.history-list--empty {
@@ -2449,20 +2458,20 @@ body.cr-fullscreen-modal-open .app-content {
   vertical-align: middle;
 }
 
-/* Tabela no drawer Gerenciar mensagens de voz: ações editar/excluir dentro da tabela */
+/* Tabela no drawer Gerenciar mensagens de voz: sem scroll; ações dentro da tabela; larguras em % */
 .voice-messages-table-wrap.drawer-voice-messages-table {
-  overflow-x: auto;
   width: 100%;
+  overflow-x: hidden;
 }
 .drawer-voice-messages-table .list-table {
   table-layout: fixed;
   width: 100%;
-  min-width: 32rem;
+  max-width: 100%;
 }
 .drawer-voice-messages-table .list-table th:not(:last-child),
 .drawer-voice-messages-table .list-table td:not(:last-child) {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -2470,29 +2479,26 @@ body.cr-fullscreen-modal-open .app-content {
 }
 .drawer-voice-messages-table .list-table th:first-child,
 .drawer-voice-messages-table .list-table td:first-child {
-  width: 18%;
+  width: 16%;
 }
 .drawer-voice-messages-table .list-table th:nth-child(2),
 .drawer-voice-messages-table .list-table td:nth-child(2) {
-  width: 28%;
+  width: 32%;
 }
 .drawer-voice-messages-table .list-table th:nth-child(3),
 .drawer-voice-messages-table .list-table td:nth-child(3) {
-  width: 16%;
-  min-width: 5rem;
+  width: 14%;
 }
 .drawer-voice-messages-table .list-table th:nth-child(4),
 .drawer-voice-messages-table .list-table td:nth-child(4) {
-  width: 18%;
-  min-width: 5rem;
-  padding-right: 1rem;
+  width: 16%;
+  padding-right: 0.5rem;
   white-space: nowrap;
 }
 .drawer-voice-messages-table .list-table th:last-child,
 .drawer-voice-messages-table .list-table td:last-child {
-  width: 10%;
-  min-width: 5.5rem;
-  padding-left: 0.75rem;
+  width: 12%;
+  padding-left: 0.5rem;
   padding-right: 0.75rem;
   white-space: nowrap;
   box-sizing: border-box;
