@@ -1,6 +1,8 @@
 import React from 'react';
 import type { HistoryEntry } from '../../types/risk.types';
 
+import emptyHistoryImage from '../../../../assets/empty-history.png';
+
 const actionLabels: Record<HistoryEntry['action'], string> = {
   create: 'Criação',
   update: 'Atualização',
@@ -40,7 +42,20 @@ export const HistoryList: React.FC<HistoryListProps> = ({ entries, loading }) =>
   }
 
   if (entries.length === 0) {
-    return <div className="history-list empty">Nenhum registro no histórico.</div>;
+    return (
+      <div className="history-list history-list--empty">
+        <div className="history-empty-state">
+          <div className="history-empty-state__image-wrap">
+            <img
+              src={emptyHistoryImage}
+              alt="Nenhum registro no histórico"
+              className="history-empty-state__image"
+            />
+          </div>
+          <p className="history-empty-state__message">Nenhum registro no histórico.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -850,6 +850,39 @@ html, body {
   text-align: left;
 }
 
+/* Histórico vazio: ilustração e mensagem centralizados no centro da página */
+.history-list.history-list--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+.history-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 420px;
+}
+.history-empty-state__image-wrap {
+  margin-bottom: 1.5rem;
+}
+.history-empty-state__image {
+  width: 309.02px;
+  height: 249.91px;
+  display: block;
+  object-fit: contain;
+}
+.history-empty-state__message {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  margin: 0;
+  font-family: var(--font-noto-sans);
+  font-weight: 400;
+}
+
 /* Política: todas as colunas dentro da tabela (100% do container), sem overflow */
 .policy-list {
   width: 100%;
