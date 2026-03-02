@@ -557,6 +557,7 @@ export const RiskRulesPage: React.FC = () => {
             ) : (
               <PolicyList
                 policies={policies}
+                scores={scores}
                 onEdit={(p) => openPolicyForm(p)}
                 onDelete={handlePolicyDelete}
               />

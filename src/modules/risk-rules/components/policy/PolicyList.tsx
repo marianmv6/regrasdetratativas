@@ -1,9 +1,36 @@
 import React from 'react';
-import type { Policy } from '../../types/risk.types';
+import type { Policy, PolicyTriggerNivelRisco, ScoreRule } from '../../types/risk.types';
+import { EVENT_TYPE_LABELS } from '../../constants/eventTypes';
 import { IconEdit, IconTrash } from '../shared/Icons';
+
+const NIVEL_RISCO_LABELS: Record<PolicyTriggerNivelRisco, string> = {
+  low: 'Baixo',
+  medium: 'Médio',
+  high: 'Alto',
+};
+
+function getEventosText(policy: Policy, scores: ScoreRule[]): string {
+  const eventIds = Object.keys(policy.configEventos ?? {});
+  const types = new Set<string>();
+  eventIds.forEach((id) => {
+    const score = scores.find((s) => s.id === id);
+    if (score) types.add(EVENT_TYPE_LABELS[score.eventType]);
+  });
+  return [...types].sort().join(', ') || '—';
+}
+
+function getNivelRiscoText(policy: Policy): string {
+  const levels = (policy.gatilhos ?? [])
+    .map((g) => g.nivelRisco)
+    .filter((v): v is PolicyTriggerNivelRisco => !!v)
+    .map((v) => NIVEL_RISCO_LABELS[v]);
+  const unique = [...new Set(levels)];
+  return unique.join(', ') || '—';
+}
 
 interface PolicyListProps {
   policies: Policy[];
+  scores: ScoreRule[];
   onEdit?: (policy: Policy) => void;
   onDelete?: (policy: Policy) => void;
   onToggleActive?: (policy: Policy) => void;
@@ -11,6 +38,7 @@ interface PolicyListProps {
 
 export const PolicyList: React.FC<PolicyListProps> = ({
   policies,
+  scores,
   onEdit,
   onDelete,
   onToggleActive,
@@ -20,7 +48,9 @@ export const PolicyList: React.FC<PolicyListProps> = ({
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Tipo de acompanhamento</th>
+          <th>Tipo</th>
+          <th>Eventos</th>
+          <th>Nível de risco</th>
           <th>Status</th>
           <th></th>
         </tr>
@@ -35,6 +65,8 @@ export const PolicyList: React.FC<PolicyListProps> = ({
               )}
             </td>
             <td>{policy.tipoAcompanhamento === 'motorista' ? 'Por motorista' : 'Por veículo'}</td>
+            <td>{getEventosText(policy, scores)}</td>
+            <td>{getNivelRiscoText(policy)}</td>
             <td>
               <span className={`badge badge-rounded ${policy.active ? 'badge-active' : 'badge-inactive'}`}>
                 {policy.active ? 'Ativo' : 'Inativo'}

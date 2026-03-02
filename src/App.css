@@ -850,24 +850,52 @@ html, body {
   text-align: left;
 }
 
-/* Política: larguras fixas para Status e Ações no mesmo local das demais abas (Status em 80%) */
-/* Política: mesmas larguras e alinhamento da tabela de tratativas (ícones no mesmo local) */
+/* Política: todas as colunas dentro da tabela (100% do container), sem overflow */
+.policy-list {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.policy-list .list-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+.policy-list .list-table thead th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.policy-list .list-table td:not(:last-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Larguras em % para efeito visual: Nome mais largo, demais colunas cabem em 100% */
 .policy-list .list-table th:first-child,
 .policy-list .list-table td:first-child {
-  width: 50%;
+  width: 32%;
 }
 .policy-list .list-table th:nth-child(2),
 .policy-list .list-table td:nth-child(2) {
-  width: 22%;
+  width: 10%;
 }
 .policy-list .list-table th:nth-child(3),
 .policy-list .list-table td:nth-child(3) {
   width: 22%;
+  text-align: center;
+}
+.policy-list .list-table th:nth-child(4),
+.policy-list .list-table td:nth-child(4) {
+  width: 16%;
+}
+.policy-list .list-table th:nth-child(5),
+.policy-list .list-table td:nth-child(5) {
+  width: 12%;
 }
 .policy-list .list-table th:last-child,
 .policy-list .list-table td:last-child {
-  width: 6%;
-  min-width: 5.5rem;
+  width: 8%;
   box-sizing: border-box;
 }
 
@@ -921,13 +949,24 @@ html, body {
   min-width: 4.5rem;
 }
 
-/* Política: 3rem entre Nível de risco, Status e Ações; ação→fim da tabela inalterado */
-.policy-list .list-table th:nth-child(2),
-.policy-list .list-table td:nth-child(2),
+/* Política: espaçamento entre colunas; ação→fim da tabela inalterado */
 .policy-list .list-table th:nth-child(3),
-.policy-list .list-table td:nth-child(3) {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+.policy-list .list-table td:nth-child(3),
+.policy-list .list-table th:nth-child(4),
+.policy-list .list-table td:nth-child(4),
+.policy-list .list-table th:nth-child(5),
+.policy-list .list-table td:nth-child(5) {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.policy-list .list-table th:first-child,
+.policy-list .list-table td:first-child {
+  padding-right: 0;
+}
+.policy-list .list-table th:nth-child(2),
+.policy-list .list-table td:nth-child(2) {
+  padding-left: 0;
+  padding-right: 1rem;
 }
 .policy-list .list-table .list-cell-actions {
   padding-left: 0.5rem;

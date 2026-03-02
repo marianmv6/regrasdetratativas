@@ -47,6 +47,12 @@ const STATUS_OPTIONS: ModalSelectOption[] = [
   { value: 'inativo', label: 'Inativo' },
 ];
 
+const NIVEL_RISCO_OPTIONS: ModalSelectOption[] = [
+  { value: 'low', label: 'Baixo' },
+  { value: 'medium', label: 'Médio' },
+  { value: 'high', label: 'Alto' },
+];
+
 const MAX_GATILHOS = 5;
 const DEFAULT_DURACAO = '1h';
 const DEFAULT_PONTOS = 0;
@@ -113,6 +119,11 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
     [activeTrails]
   );
 
+  const hasVideoEvent = useMemo(
+    () => scores.some((s) => configEventos[s.id] && s.eventType === 'video'),
+    [scores, configEventos]
+  );
+
   const isDirty = useMemo(() => {
     if (!initialData)
       return (
@@ -147,7 +158,11 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
     const initG = initialData.gatilhos ?? [];
     if (gatilhos.length !== initG.length) return true;
     for (let i = 0; i < gatilhos.length; i++) {
-      if (gatilhos[i].aPartirDePontos !== initG[i]?.aPartirDePontos || gatilhos[i].trilhaId !== initG[i]?.trilhaId)
+      if (
+        gatilhos[i].aPartirDePontos !== initG[i]?.aPartirDePontos ||
+        gatilhos[i].trilhaId !== initG[i]?.trilhaId ||
+        (gatilhos[i].nivelRisco ?? '') !== (initG[i]?.nivelRisco ?? '')
+      )
         return true;
     }
     if (active !== (initialData.active ?? true)) return true;
@@ -210,7 +225,7 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
   const addGatilho = () => {
     if (gatilhos.length >= MAX_GATILHOS) return;
     const lastPoints = gatilhos.length ? gatilhos[gatilhos.length - 1].aPartirDePontos : 0;
-    setGatilhos((prev) => [...prev, { aPartirDePontos: lastPoints + 10, trilhaId: '' }]);
+    setGatilhos((prev) => [...prev, { aPartirDePontos: lastPoints + 10, trilhaId: '', nivelRisco: undefined }]);
     if (fieldErrors.gatilhos) setFieldErrors((err) => ({ ...err, gatilhos: false }));
   };
 
@@ -246,7 +261,11 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
     if (nameInvalid || eventosInvalid || usuariosInvalid || gatilhosInvalid) return;
     const gatilhosClean = gatilhos
       .filter((g) => g.trilhaId)
-      .map((g) => ({ aPartirDePontos: Math.max(0, g.aPartirDePontos), trilhaId: g.trilhaId }))
+      .map((g) => ({
+        aPartirDePontos: Math.max(0, g.aPartirDePontos),
+        trilhaId: g.trilhaId,
+        ...(g.nivelRisco && { nivelRisco: g.nivelRisco }),
+      }))
       .sort((a, b) => a.aPartirDePontos - b.aPartirDePontos);
     onSubmit({
       name: nameTrimmed,
@@ -501,6 +520,18 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
                           placeholder="Selecione a trilha"
                         />
                       </div>
+                      {hasVideoEvent && (
+                        <div className="trail-step-action policy-form-gatilho-trail-inline">
+                          <ModalSelect
+                            id={`gatilho-nivel-${index}`}
+                            label="Nível de risco"
+                            value={g.nivelRisco ?? ''}
+                            onChange={(v) => updateGatilho(index, { nivelRisco: (v || undefined) as PolicyTrigger['nivelRisco'] })}
+                            options={NIVEL_RISCO_OPTIONS}
+                            placeholder="Selecione"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

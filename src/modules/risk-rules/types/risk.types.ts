@@ -20,10 +20,15 @@ export interface PolicyEventConfig {
   duracaoAtiva: string;
 }
 
-/** Ocorrência: a partir de X pontos solicitar tratativa (trilha) Y */
+/** Nível de risco para ocorrência quando a política inclui evento de vídeo */
+export type PolicyTriggerNivelRisco = 'low' | 'medium' | 'high';
+
+/** Ocorrência: a partir de X pontos solicitar tratativa (trilha) Y; opcionalmente nível de risco quando há evento de vídeo */
 export interface PolicyTrigger {
   aPartirDePontos: number;
   trilhaId: string;
+  /** Nível de risco (Baixo/Médio/Alto) – exibido quando a política inclui evento de vídeo */
+  nivelRisco?: PolicyTriggerNivelRisco;
 }
 
 export interface Policy {
