@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { Policy, PolicyEventConfig, PolicyTrigger, PolicyTrackingType, ScoreRule, Trail } from '../../types/risk.types';
 import type { PlatformUser } from '../../mocks/risk.mock';
 import { EVENT_TYPE_LABELS } from '../../constants/eventTypes';
 import { FieldErrorIcon } from '../shared/FieldErrorIcon';
 import { IconTrash, IconSearch } from '../shared/Icons';
 import { InfoTooltip } from '../shared/InfoTooltip';
+import { LevelTooltip } from '../shared/LevelTooltip';
 import { ModalSelect, type ModalSelectOption } from '../shared/ModalSelect';
 
 interface PolicyFormProps {
@@ -83,6 +84,7 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
   const [active, setActive] = useState(initialData?.active ?? true);
   const [eventSearchQuery, setEventSearchQuery] = useState('');
   const [eventSearchExpanded, setEventSearchExpanded] = useState(false);
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: boolean;
     configEventos?: boolean;
@@ -353,20 +355,22 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
             <p className="form-hint policy-form-eventos-section-hint">
               Selecione os eventos desta política e defina pontuação e duração ativa para cada um
             </p>
-            <div className="form-group policy-form-checkbox-option">
-              <input
-                id="policy-eventos-all"
-                type="checkbox"
-                checked={allEventosSelected}
-                onChange={(e) => selectAllEventos(e.target.checked)}
-              />
-              <label htmlFor="policy-eventos-all">Selecionar todos</label>
-            </div>
             <div className="policy-form-eventos-config-table-wrap">
               <table className="list-table policy-form-eventos-config">
                 <thead>
                   <tr>
-                    <th style={{ width: '2rem' }}></th>
+                    <th style={{ width: '2rem' }} className="policy-form-eventos-config-header__th-checkbox">
+                      <LevelTooltip text="Selecionar todos" topLayer anchorRef={selectAllCheckboxRef}>
+                        <input
+                          ref={selectAllCheckboxRef}
+                          id="policy-eventos-all"
+                          type="checkbox"
+                          checked={allEventosSelected}
+                          onChange={(e) => selectAllEventos(e.target.checked)}
+                          aria-label="Selecionar todos"
+                        />
+                      </LevelTooltip>
+                    </th>
                     <th>Evento</th>
                     <th>Tipo</th>
                     <th className="policy-form-eventos-config-header__th-with-info">

@@ -726,6 +726,9 @@ html, body {
   line-height: 1.25;
   min-height: 1em;
 }
+.level-tooltip--top-layer {
+  z-index: 99999 !important;
+}
 
 /* Tabs – mesma cor em todas, só linha azul na ativa (mais grossa), sem linha cinza */
 .risk-tabs {
@@ -3138,6 +3141,25 @@ body.cr-fullscreen-modal-open .app-content {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
+.policy-form-eventos-config-header__th-checkbox {
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1.25;
+}
+/* Wrapper do tamanho do checkbox para a tooltip ficar exatamente acima dele */
+.policy-form-eventos-config-header__th-checkbox .level-tooltip-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1.25;
+  vertical-align: middle;
+  width: fit-content;
+  height: fit-content;
+}
+.policy-form-eventos-config-header__th-checkbox input[type="checkbox"] {
+  vertical-align: middle;
+}
 .policy-form-eventos-config th:nth-child(2),
 .policy-form-eventos-config td:nth-child(2) {
   width: 28%;
@@ -3191,6 +3213,13 @@ body.cr-fullscreen-modal-open .app-content {
   min-height: 2.5rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  line-height: 1.25;
+}
+/* Checkbox e ícones de info na mesma altura que o texto "Evento" */
+.policy-form-eventos-config thead th:first-child,
+.policy-form-eventos-config thead th.policy-form-eventos-config-header__th-with-info {
+  vertical-align: middle;
+  line-height: 1.25;
 }
 .policy-form-eventos-config-table-wrap .policy-form-eventos-config thead th:first-child {
   border-radius: 8px 0 0 0;
@@ -3214,17 +3243,19 @@ body.cr-fullscreen-modal-open .app-content {
 /* Label "Tipo de acompanhamento" com ícone de informação (mesmo padrão de Pontos) */
 .policy-form-tracking-label-wrap {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.35rem;
   margin-bottom: 0.25rem;
 }
 .policy-form-tracking-label-wrap .policy-form-header-info-wrap {
   margin-left: 0;
 }
+/* Ícone de informação alinhado ao pé da letra do texto ao lado */
 .policy-form-header-info-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  vertical-align: baseline;
   cursor: help;
   line-height: 1;
   flex-shrink: 0;
@@ -3233,6 +3264,7 @@ body.cr-fullscreen-modal-open .app-content {
   width: 1em;
   height: 1em;
   font-size: inherit;
+  vertical-align: baseline;
 }
 /* Tooltip no formato da imagem: fundo branco, bordas arredondadas, sombra cinza, fonte Noto Sans */
 .policy-form-header-info-tooltip {
