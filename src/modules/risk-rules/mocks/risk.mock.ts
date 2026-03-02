@@ -10,13 +10,15 @@ import type { EventType } from '../types/risk.types';
 export interface PlatformUser {
   id: string;
   name: string;
+  email?: string;
+  grupoOrganizacao?: string;
   active: boolean;
 }
 
 export const mockUsers: PlatformUser[] = [
-  { id: 'usr-1', name: 'Maria Silva', active: true },
-  { id: 'usr-2', name: 'João Santos', active: true },
-  { id: 'usr-3', name: 'Ana Oliveira', active: true },
+  { id: 'usr-1', name: 'Maria Silva', email: 'maria.silva@empresa.com', grupoOrganizacao: 'Operações', active: true },
+  { id: 'usr-2', name: 'João Santos', email: 'joao.santos@empresa.com', grupoOrganizacao: 'Frota', active: true },
+  { id: 'usr-3', name: 'Ana Oliveira', email: 'ana.oliveira@empresa.com', grupoOrganizacao: 'RH', active: true },
 ];
 
 const defaultEventConfig = (pontos: number) => ({ pontos, duracaoAtiva: '1h' });
@@ -148,27 +150,4 @@ export const mockVoiceMessages: VoiceMessage[] = [
   { id: 'vox-2', identification: 'Bloqueio', language: 'pt', message: 'Acesso bloqueado por segurança.', device: 'K1 Plus', format: 'WAV', active: false },
 ];
 
-export const mockHistory: HistoryEntry[] = [
-  {
-    id: 'hist-1',
-    entityType: 'policy',
-    entityId: 'pol-1',
-    entityName: 'Política padrão',
-    action: 'update',
-    userName: 'Admin',
-    userEmail: 'admin@empresa.com',
-    timestamp: '2025-02-01T14:30:00Z',
-    actionDescription: 'Janela de tempo alterada de "2h" para "3h".',
-  },
-  {
-    id: 'hist-2',
-    entityType: 'treatment',
-    entityId: 'trail-1',
-    entityName: 'Trilha por pontos',
-    action: 'update',
-    userName: 'Sistema',
-    userEmail: 'gestor@empresa.com',
-    timestamp: '2025-02-05T11:00:00Z',
-    actionDescription: 'Etapa 1 - "Nível" alterado de "Baixo" para "Médio".',
-  },
-];
+export const mockHistory: HistoryEntry[] = [];

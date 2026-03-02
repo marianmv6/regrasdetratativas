@@ -223,10 +223,10 @@ export const TrailForm: React.FC<TrailFormProps> = ({
       <div className={`form-group ${fieldErrors.steps ? 'has-error' : ''}`}>
         <div className="trail-form-etapas-section">
           <div className="trail-form-etapas-header policy-form-gatilhos-header">
-            <label className="policy-form-gatilhos-title">Etapas (1 a {MAX_STEPS})</label>
+            <label className="policy-form-gatilhos-title">Ações (1 a {MAX_STEPS})</label>
             {steps.length < MAX_STEPS && (
               <button type="button" className="btn btn-sm btn-primary" onClick={addStep}>
-                + Adicionar etapa
+                + Adicionar ação
               </button>
             )}
           </div>
@@ -241,13 +241,13 @@ export const TrailForm: React.FC<TrailFormProps> = ({
             {steps.map((step, index) => (
               <div key={step.id} className="trail-step-card">
               <div className="trail-step-header">
-                <span className="trail-step-title">Etapa {index + 1}</span>
+                <span className="trail-step-title">Ação {index + 1}</span>
                 {steps.length > 1 && (
                   <button
                     type="button"
                     className="trail-step-remove-btn"
                     onClick={() => removeStep(step)}
-                    aria-label="Remover etapa"
+                    aria-label="Remover ação"
                   >
                     <IconTrash />
                   </button>
@@ -257,7 +257,6 @@ export const TrailForm: React.FC<TrailFormProps> = ({
                 <div className="trail-step-action">
                   <ModalSelect
                     id={`step-action-${step.id}`}
-                    label="Ação"
                     value={step.action}
                     onChange={(v) => updateStep(step.id, { action: v as StepActionType })}
                     options={ACTION_OPTIONS}
@@ -267,26 +266,8 @@ export const TrailForm: React.FC<TrailFormProps> = ({
               </div>
               {step.action === 'email_automatico' && (
                 <div className="trail-step-config">
-                  <label>Contatos que recebem email</label>
-                  <div className="form-group policy-form-checkbox-option">
-                    <input
-                      id={`trail-step-${step.id}-contacts-all`}
-                      type="checkbox"
-                      checked={
-                        contacts.length > 0 &&
-                        (step.config?.contactIds ?? []).length === contacts.length
-                      }
-                      onChange={(e) => {
-                        const contactIds = e.target.checked
-                          ? contacts.map((c) => c.id)
-                          : [];
-                        updateStep(step.id, {
-                          config: { ...step.config, contactIds },
-                        });
-                      }}
-                    />
-                    <label htmlFor={`trail-step-${step.id}-contacts-all`}>Selecionar todos</label>
-                  </div>
+                  <label className="trail-step-config__section-title">Selecione quem deve receber o e-mail</label>
+                  <p className="trail-step-config__hint">Pode ser selecionado mais de um</p>
                   <div className="trail-step-contacts-table-wrap">
                     <table className="list-table trail-step-contacts-table">
                       <thead>
@@ -332,26 +313,8 @@ export const TrailForm: React.FC<TrailFormProps> = ({
               )}
               {step.action === 'contato_gestor' && (
                 <div className="trail-step-config">
-                  <label>Contatos</label>
-                  <div className="form-group policy-form-checkbox-option">
-                    <input
-                      id={`trail-step-${step.id}-gestor-all`}
-                      type="checkbox"
-                      checked={
-                        contacts.length > 0 &&
-                        (step.config?.contactIds ?? []).length === contacts.length
-                      }
-                      onChange={(e) => {
-                        const contactIds = e.target.checked
-                          ? contacts.map((c) => c.id)
-                          : [];
-                        updateStep(step.id, {
-                          config: { ...step.config, contactIds },
-                        });
-                      }}
-                    />
-                    <label htmlFor={`trail-step-${step.id}-gestor-all`}>Selecionar todos</label>
-                  </div>
+                  <label className="trail-step-config__section-title">Selecione quem deve ser contatado</label>
+                  <p className="trail-step-config__hint">Pode ser selecionado mais de um</p>
                   <div className="trail-step-contacts-table-wrap">
                     <table className="list-table trail-step-contacts-table">
                       <thead>
@@ -397,26 +360,8 @@ export const TrailForm: React.FC<TrailFormProps> = ({
               )}
               {step.action === 'whatsapp_grupo' && (
                 <div className="trail-step-config">
-                  <label>Contatos (grupo)</label>
-                  <div className="form-group policy-form-checkbox-option">
-                    <input
-                      id={`trail-step-${step.id}-whatsapp-all`}
-                      type="checkbox"
-                      checked={
-                        contacts.length > 0 &&
-                        (step.config?.contactIds ?? []).length === contacts.length
-                      }
-                      onChange={(e) => {
-                        const contactIds = e.target.checked
-                          ? contacts.map((c) => c.id)
-                          : [];
-                        updateStep(step.id, {
-                          config: { ...step.config, contactIds },
-                        });
-                      }}
-                    />
-                    <label htmlFor={`trail-step-${step.id}-whatsapp-all`}>Selecionar todos</label>
-                  </div>
+                  <label className="trail-step-config__section-title">Selecione os contatos do grupo ou nome correspondente</label>
+                  <p className="trail-step-config__hint">Pode ser selecionado mais de um</p>
                   <div className="trail-step-contacts-table-wrap">
                     <table className="list-table trail-step-contacts-table">
                       <thead>

@@ -20,7 +20,7 @@ export interface PolicyEventConfig {
   duracaoAtiva: string;
 }
 
-/** Gatilho: a partir de X pontos solicitar tratativa (trilha) Y */
+/** Ocorrência: a partir de X pontos solicitar tratativa (trilha) Y */
 export interface PolicyTrigger {
   aPartirDePontos: number;
   trilhaId: string;
@@ -36,7 +36,7 @@ export interface Policy {
   configEventos: Record<string, PolicyEventConfig>;
   /** 'all' ou ids de usuários específicos */
   usuariosAtribuidos: PolicyUsersAttributed;
-  /** Gatilhos (até 3): a partir de X pontos solicitar trilha Y; ordem crescente */
+  /** Ocorrências (até 5): a partir de X pontos solicitar trilha Y; ordem crescente */
   gatilhos: PolicyTrigger[];
   active: boolean;
   createdAt: string;

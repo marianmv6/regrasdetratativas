@@ -46,7 +46,7 @@ export const VoiceMessagesPanel: React.FC<VoiceMessagesPanelProps> = ({
 
   const messageMaxLength = device === 'K1 Plus' || device === 'G5 Plus' ? MESSAGE_MAX_LENGTH_DEVICE : MESSAGE_MAX_LENGTH_DEFAULT;
   const formatFromDevice: 'WAV' | 'MP3' = device === 'G5 Plus' ? 'MP3' : 'WAV';
-  const formatLabel = device === 'K1 Plus' ? 'WAV disponível' : device === 'G5 Plus' ? 'MP3' : '';
+  const formatLabel = device === 'K1 Plus' ? 'WAV' : device === 'G5 Plus' ? 'MP3' : '';
 
   /** Apenas letras, números e espaços (sem caracteres especiais), até máx. conforme dispositivo. */
   const sanitizeMessage = (val: string, max: number) =>

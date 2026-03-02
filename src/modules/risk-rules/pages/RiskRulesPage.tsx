@@ -49,7 +49,7 @@ export const RiskRulesPage: React.FC = () => {
   const [trails, setTrails] = useState<Trail[]>(mockTrails);
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>(mockVoiceMessages);
-  const [history, setHistory] = useState<HistoryEntry[]>(mockHistory);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const addHistoryEntry = (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => {
     setHistory((prev) => [
@@ -175,28 +175,7 @@ export const RiskRulesPage: React.FC = () => {
     } else closeTrailForm();
   };
 
-  /** Eventos não podem estar em duas políticas ativas: verifica sobreposição de eventIds em configEventos */
-  const eventIdsOverlap = (configA: Record<string, { pontos: number; duracaoAtiva: string }>, configB: Record<string, { pontos: number; duracaoAtiva: string }>) => {
-    const idsA = new Set(Object.keys(configA));
-    return Object.keys(configB).some((id) => idsA.has(id));
-  };
-
   const handlePolicySubmit = (data: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (data.active) {
-      const otherActivePolicies = policies.filter(
-        (p) => p.active && p.id !== policyEditing?.id
-      );
-      const overlap = otherActivePolicies.some((p) =>
-        eventIdsOverlap(p.configEventos, data.configEventos)
-      );
-      if (overlap) {
-        showToast(
-          'Um evento não pode estar em duas políticas ativas. Remova o evento de outra política primeiro.',
-          'warning'
-        );
-        return;
-      }
-    }
     if (policyEditing) {
       setPolicies((prev) =>
         prev.map((p) =>

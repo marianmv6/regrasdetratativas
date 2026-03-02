@@ -18,7 +18,7 @@ export const TrailList: React.FC<TrailListProps> = ({
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Etapas</th>
+          <th>Ações</th>
           <th>Status</th>
           <th></th>
         </tr>
@@ -27,7 +27,7 @@ export const TrailList: React.FC<TrailListProps> = ({
         {trails.map((t) => (
           <tr key={t.id}>
             <td>{t.name}</td>
-            <td>{t.steps.length} etapa(s)</td>
+            <td>{t.steps.length} {t.steps.length === 1 ? 'ação' : 'ações'}</td>
             <td>
               <span className={`badge badge-rounded ${t.active ? 'badge-active' : 'badge-inactive'}`}>
                 {t.active ? 'Ativo' : 'Inativo'}

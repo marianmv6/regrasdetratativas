@@ -3,7 +3,8 @@ import type { Policy, PolicyEventConfig, PolicyTrigger, PolicyTrackingType, Scor
 import type { PlatformUser } from '../../mocks/risk.mock';
 import { EVENT_TYPE_LABELS } from '../../constants/eventTypes';
 import { FieldErrorIcon } from '../shared/FieldErrorIcon';
-import { IconTrash } from '../shared/Icons';
+import { IconTrash, IconSearch } from '../shared/Icons';
+import { InfoTooltip } from '../shared/InfoTooltip';
 import { ModalSelect, type ModalSelectOption } from '../shared/ModalSelect';
 
 interface PolicyFormProps {
@@ -45,7 +46,7 @@ const STATUS_OPTIONS: ModalSelectOption[] = [
   { value: 'inativo', label: 'Inativo' },
 ];
 
-const MAX_GATILHOS = 3;
+const MAX_GATILHOS = 5;
 const DEFAULT_DURACAO = '1h';
 const DEFAULT_PONTOS = 0;
 
@@ -81,6 +82,7 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
   });
   const [active, setActive] = useState(initialData?.active ?? true);
   const [eventSearchQuery, setEventSearchQuery] = useState('');
+  const [eventSearchExpanded, setEventSearchExpanded] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: boolean;
     configEventos?: boolean;
@@ -284,9 +286,12 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
           </div>
         </div>
         <div className="form-group">
+          <div className="policy-form-tracking-label-wrap">
+            <label htmlFor="policy-tracking" className="modal-select__label">Tipo de acompanhamento</label>
+            <InfoTooltip text="O tipo de acompanhamento definido nesta política fará com que o sistema monitore os eventos gerados por motorista ou por veículo, conforme a configuração estabelecida." />
+          </div>
           <ModalSelect
             id="policy-tracking"
-            label="Tipo de acompanhamento"
             value={tipoAcompanhamento}
             onChange={(v) => setTipoAcompanhamento(v as PolicyTrackingType)}
             options={TRACKING_OPTIONS}
@@ -309,8 +314,35 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
 
       <div className={`form-group ${fieldErrors.configEventos ? 'has-error' : ''}`}>
         <div className="policy-form-eventos-section">
-          <div className="trail-form-etapas-header policy-form-gatilhos-header">
+          <div className="trail-form-etapas-header policy-form-gatilhos-header policy-form-eventos-header">
             <label className="policy-form-gatilhos-title">Configuração por evento</label>
+            <div
+              className={`policy-form-eventos-search-expand ${eventSearchExpanded ? 'is-expanded' : ''}`}
+              onMouseLeave={() => setEventSearchExpanded(false)}
+            >
+              <input
+                id="policy-eventos-search"
+                type="text"
+                value={eventSearchQuery}
+                onChange={(e) => setEventSearchQuery(e.target.value)}
+                onFocus={() => setEventSearchExpanded(true)}
+                onBlur={() => setEventSearchExpanded(false)}
+                placeholder="Buscar evento..."
+                className="policy-form-eventos-search-input"
+                autoComplete="off"
+                aria-label="Buscar evento"
+              />
+              <span
+                className="policy-form-eventos-search-icon"
+                onMouseEnter={() => setEventSearchExpanded(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEventSearchExpanded(true); }}
+                aria-label="Expandir busca"
+              >
+                <IconSearch />
+              </span>
+            </div>
           </div>
           <div className={`policy-form-eventos-section__content ${fieldErrors.configEventos ? 'has-error' : ''}`}>
             {fieldErrors.configEventos && (
@@ -319,22 +351,8 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
               </span>
             )}
             <p className="form-hint policy-form-eventos-section-hint">
-              Selecione os eventos desta política e defina pontuação e duração ativa para cada um.
+              Selecione os eventos desta política e defina pontuação e duração ativa para cada um
             </p>
-            <div className="form-group policy-form-eventos-search">
-              <label htmlFor="policy-eventos-search" className="visually-hidden">
-                Buscar evento por nome
-              </label>
-              <input
-                id="policy-eventos-search"
-                type="text"
-                value={eventSearchQuery}
-                onChange={(e) => setEventSearchQuery(e.target.value)}
-                placeholder="Filtrar por nome do evento"
-                className="form-control"
-                autoComplete="off"
-              />
-            </div>
             <div className="form-group policy-form-checkbox-option">
               <input
                 id="policy-eventos-all"
@@ -346,16 +364,22 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
             </div>
             <div className="policy-form-eventos-config-table-wrap">
               <table className="list-table policy-form-eventos-config">
-              <thead>
-                <tr>
-                  <th style={{ width: '2rem' }}></th>
-                  <th>Evento</th>
-                  <th>Tipo</th>
-                  <th>Pontos</th>
-                  <th>Duração ativa</th>
-                </tr>
-              </thead>
-              <tbody>
+                <thead>
+                  <tr>
+                    <th style={{ width: '2rem' }}></th>
+                    <th>Evento</th>
+                    <th>Tipo</th>
+                    <th className="policy-form-eventos-config-header__th-with-info">
+                      Pontos
+                      <InfoTooltip text="Defina a pontuação individual de cada evento. Esses pontos serão somados para geração de uma ocorrência." />
+                    </th>
+                    <th className="policy-form-eventos-config-header__th-with-info">
+                      Duração ativa
+                      <InfoTooltip text="Período durante o qual o evento permanecerá ativo para compor a soma de pontos na geração da ocorrência." />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
                 {filteredScores.map((score) => {
                   const included = !!configEventos[score.id];
                   return (
@@ -406,9 +430,9 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
                     </tr>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -416,10 +440,10 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
       <div className={`form-group ${fieldErrors.gatilhos ? 'has-error' : ''}`}>
         <div className="policy-form-gatilhos-section">
           <div className="trail-form-etapas-header policy-form-gatilhos-header">
-            <label className="policy-form-gatilhos-title">Gatilhos (1 a {MAX_GATILHOS})</label>
+            <label className="policy-form-gatilhos-title">Ocorrências (1 a {MAX_GATILHOS})</label>
             {gatilhos.length < MAX_GATILHOS && (
               <button type="button" className="btn btn-sm btn-primary" onClick={addGatilho}>
-                + Adicionar gatilho
+                + Adicionar ocorrência
               </button>
             )}
           </div>
@@ -434,13 +458,13 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
                 {gatilhos.map((g, index) => (
                   <div key={index} className="trail-step-card">
                     <div className="trail-step-header">
-                      <span className="trail-step-title">Gatilho {index + 1}</span>
+                      <span className="trail-step-title">Ocorrência {index + 1}</span>
                       {gatilhos.length > 1 && (
                         <button
                           type="button"
                           className="trail-step-remove-btn"
                           onClick={() => removeGatilho(index)}
-                          aria-label="Remover gatilho"
+                          aria-label="Remover ocorrência"
                         >
                           <IconTrash />
                         </button>
@@ -520,18 +544,46 @@ export const PolicyForm: React.FC<PolicyFormProps> = ({
               <label htmlFor="policy-users-specific">Usuários específicos</label>
             </div>
             {!usuariosAll && (
-              <div className="policy-form-usuarios-list">
-                {activeUsers.map((user) => (
-                  <div key={user.id} className="form-group policy-form-checkbox-option">
-                    <input
-                      id={`policy-user-${user.id}`}
-                      type="checkbox"
-                      checked={usuariosSelected.includes(user.id)}
-                      onChange={() => toggleUsuario(user.id)}
-                    />
-                    <label htmlFor={`policy-user-${user.id}`}>{user.name}</label>
-                  </div>
-                ))}
+              <div className="policy-form-usuarios-table-wrap">
+                <table className="list-table policy-form-usuarios-table policy-form-usuarios-table-header">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '2rem' }}></th>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Grupo de organização</th>
+                    </tr>
+                  </thead>
+                </table>
+                <div className="policy-form-usuarios-table-body-wrap">
+                  <table className="list-table policy-form-usuarios-table policy-form-usuarios-table-body">
+                    <tbody>
+                      {activeUsers.map((user) => (
+                        <tr key={user.id}>
+                          <td>
+                            <input
+                              id={`policy-user-${user.id}`}
+                              type="checkbox"
+                              checked={usuariosSelected.includes(user.id)}
+                              onChange={() => toggleUsuario(user.id)}
+                            />
+                          </td>
+                          <td>
+                            <label htmlFor={`policy-user-${user.id}`}>{user.name}</label>
+                          </td>
+                          <td>{user.email ?? '—'}</td>
+                          <td>
+                            {user.grupoOrganizacao ? (
+                              <span className="policy-form-usuarios-grupo-tag">{user.grupoOrganizacao}</span>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

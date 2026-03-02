@@ -9,6 +9,31 @@ html, body {
   overflow: hidden;
 }
 
+/* Scroll global: sem setas, thumb #2F2F2F 20% opacidade, cantos arredondados */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2F2F2F33 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2F2F2F33;
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #2F2F2F4D;
+}
+
 .between {
   justify-content: space-between;
 }
@@ -643,7 +668,7 @@ html, body {
 .risk-badge--medium { background: #FFF8E1; color: #F9A825; }
 .risk-badge--high { background: #FFEBEE; color: #C62828; }
 
-/* Tooltip de nível (formato: borda sombreada, corpo branco, texto centralizado) */
+/* Tooltip padrão: fundo branco, bordas arredondadas (6px), sombra cinza, fonte Noto Sans */
 .level-tooltip-wrap {
   position: relative;
   display: inline-block;
@@ -658,6 +683,7 @@ html, body {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-noto-sans);
   font-size: 0.8125rem;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -689,6 +715,7 @@ html, body {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-noto-sans);
   font-size: 0.8125rem;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -841,6 +868,10 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Tela de Eventos: margem ao término da tabela para não cortar o texto ao rolar até o final */
+.score-list {
+  margin-bottom: 2rem;
+}
 /* Pontuações e Tratativas: larguras fixas para Status e Ações no mesmo local ao trocar de aba */
 .score-list .list-table th:first-child,
 .score-list .list-table td:first-child {
@@ -1475,17 +1506,18 @@ html, body {
   top: 50%;
   transform: translateY(-50%);
   margin-left: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
   min-width: 14rem;
   max-width: 20rem;
-  background: var(--color-tooltip-background);
+  background: #fff;
   color: var(--color-text-primary);
+  font-family: var(--font-noto-sans);
   font-size: 0.8125rem;
   line-height: 1.4;
   white-space: pre-line;
-  border-radius: 0.375rem;
-  box-shadow: var(--box-shadow);
-  border: 0.063rem solid color-mix(in srgb, var(--color-separator) 30%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   z-index: 100;
   pointer-events: none;
 }
@@ -2148,8 +2180,23 @@ body.cr-fullscreen-modal-open .app-content {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
+.trail-step-config__section-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #344054;
+  margin-bottom: 0.25rem;
+  padding-left: 0;
+  box-sizing: border-box;
+}
+.trail-step-config__hint {
+  font-size: 0.6875rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0 0 0.5rem 0;
+}
 /* Alinhar título da seção (ex.: "Contatos que recebem email") ao início do conteúdo da tabela (coluna Contato) */
-.trail-step-config > label:first-child {
+.trail-step-config > label:first-child:not(.trail-step-config__section-title) {
   padding-left: calc(2.5rem + 0.6rem * 2);
   box-sizing: border-box;
 }
@@ -2281,13 +2328,13 @@ body.cr-fullscreen-modal-open .app-content {
 }
 .drawer-contacts-table .list-table th:nth-child(4),
 .drawer-contacts-table .list-table td:nth-child(4) {
-  width: 22%;
-  min-width: 6rem;
+  width: 28%;
+  min-width: 8rem;
   white-space: nowrap;
 }
 .drawer-contacts-table .list-table th:nth-child(5),
 .drawer-contacts-table .list-table td:nth-child(5) {
-  width: 24%;
+  width: 18%;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -2453,6 +2500,18 @@ body.cr-fullscreen-modal-open .app-content {
 .form-row .form-field.has-error input,
 .form-row .form-field input.input-error {
   border-color: var(--color-error);
+}
+/* Modal novo/editar contato: componentes em foco com borda azul */
+.form-card.contact-form .form-field input:focus,
+.form-card.contact-form .form-group textarea:focus {
+  border-color: rgb(22, 158, 255);
+  outline: none;
+  box-shadow: none;
+}
+.form-card.contact-form .modal-select__input-wrap:focus-within {
+  border-color: rgb(22, 158, 255);
+  outline: none;
+  box-shadow: none;
 }
 @media (max-width: 560px) {
   .form-row {
@@ -2891,13 +2950,112 @@ body.cr-fullscreen-modal-open .app-content {
   gap: 1.5rem;
   align-items: start;
 }
-.policy-form-eventos-search {
-  margin-bottom: 0.5rem;
+/* Configuração por evento: título e lupa na mesma linha; lupa expande para busca ao hover */
+.policy-form-eventos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
-.policy-form-eventos-search input {
-  width: 100%;
-  max-width: 20rem;
+.policy-form-eventos-header .policy-form-gatilhos-title {
+  margin: 0;
+}
+.policy-form-eventos-search-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  overflow: hidden;
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  transition: width 0.2s ease, min-width 0.2s ease, height 0.2s ease, background 0.2s ease, border 0.2s ease;
   box-sizing: border-box;
+}
+/* Uma só borda externa contornando lupa e texto; sem borda azul; altura reduzida */
+.policy-form-eventos-search-expand.is-expanded {
+  min-width: 12rem;
+  width: 12rem;
+  height: 2rem;
+  min-height: 2rem;
+  background: #FFFFFF;
+  border: 1px solid #D9D9D9;
+  justify-content: stretch;
+  border-radius: 999px;
+}
+.policy-form-eventos-search-expand:focus,
+.policy-form-eventos-search-expand:focus-within,
+.policy-form-eventos-search-expand.is-expanded:focus,
+.policy-form-eventos-search-expand.is-expanded:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+/* Recolhido: input não ocupa espaço nem recebe hover — só a lupa é clicável */
+.policy-form-eventos-search-expand:not(.is-expanded) .policy-form-eventos-search-input {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  pointer-events: none;
+  opacity: 0;
+  position: absolute;
+}
+.policy-form-eventos-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 2rem;
+  padding: 0 0.5rem 0 1rem;
+  border: none !important;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-family: var(--font-noto-sans);
+  color: #101828;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.policy-form-eventos-search-input:focus,
+.policy-form-eventos-search-input:focus-visible,
+.policy-form-eventos-search-input:active {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.policy-form-eventos-search-input::placeholder {
+  color: #A9A9A9;
+}
+/* Lupa recolhida: só o ícone, fundo transparente; altura reduzida */
+.policy-form-eventos-search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  background: transparent;
+  color: #00aaff;
+  cursor: pointer;
+  border-radius: 10px;
+}
+/* Expandido: lupa dentro da caixa, mesma altura do componente */
+.policy-form-eventos-search-expand.is-expanded .policy-form-eventos-search-icon {
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+.policy-form-eventos-search-icon .ds-icon {
+  color: #00aaff;
+}
+.policy-form-eventos-search-expand.is-expanded .policy-form-eventos-search-icon .ds-icon {
+  color: #00aaff;
 }
 /* Configuração por evento: mesma formatação da seção Gatilhos (fundo cinza, título) */
 .policy-form-eventos-section {
@@ -2907,7 +3065,10 @@ body.cr-fullscreen-modal-open .app-content {
   padding: 1rem 1.25rem;
   margin-top: 0.25rem;
 }
-.policy-form-eventos-section .policy-form-gatilhos-header {
+.policy-form-eventos-section .policy-form-gatilhos-header:not(.policy-form-eventos-header) {
+  margin-bottom: 0.75rem;
+}
+.policy-form-eventos-section .policy-form-eventos-header {
   margin-bottom: 0.75rem;
 }
 .policy-form-eventos-section .policy-form-gatilhos-title {
@@ -2917,14 +3078,23 @@ body.cr-fullscreen-modal-open .app-content {
   margin: 0;
 }
 .policy-form-eventos-section-hint {
-  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
   color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0 0 0.5rem 0;
+}
+/* Reduzir distância entre título "Configuração por evento" e "Selecione os eventos..." em 1rem */
+.policy-form-eventos-section .policy-form-eventos-header {
+  margin-bottom: -0.25rem;
+}
+.cr-modal__body .policy-form .policy-form-eventos-section-hint {
+  font-size: 0.6875rem;
 }
 .policy-form-eventos-section__content {
   position: relative;
 }
 .policy-form-eventos-section .policy-form-eventos-config-table-wrap {
-  background: #FFFFFF;
+  background: #F0F0F0;
   border: 1px solid #E9EEEE;
   border-radius: 8px;
   padding: 0;
@@ -2941,29 +3111,144 @@ body.cr-fullscreen-modal-open .app-content {
   margin-top: 0.25rem;
 }
 .cr-modal__body .policy-form .policy-form-eventos-section .policy-form-eventos-config-table-wrap {
-  background: #FFFFFF;
+  background: #F0F0F0;
   border: 1px solid #E9EEEE;
   border-radius: 8px;
 }
 
 .policy-form-eventos-config-table-wrap {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 16rem;
   margin-top: 0.5rem;
 }
+/* Uma tabela: cabeçalho fixo ao rolar, Pontos e Duração ativa na mesma linha */
 .policy-form-eventos-config {
   width: 100%;
   min-width: 32rem;
+  table-layout: fixed;
+}
+.policy-form-eventos-config thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #F0F0F0;
+}
+/* Mesmas larguras e padding no thead e tbody para alinhar colunas */
+.policy-form-eventos-config th:nth-child(1),
+.policy-form-eventos-config td:nth-child(1) {
+  width: 2rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.policy-form-eventos-config th:nth-child(2),
+.policy-form-eventos-config td:nth-child(2) {
+  width: 28%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  text-align: left;
+}
+.policy-form-eventos-config th:nth-child(3),
+.policy-form-eventos-config td:nth-child(3) {
+  width: 18%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  text-align: left;
+}
+.policy-form-eventos-config th:nth-child(4),
+.policy-form-eventos-config td:nth-child(4) {
+  width: calc(12% + 2rem);
+  min-width: 6rem;
+  padding-left: 0.75rem;
+  padding-right: calc(0.75rem + 4rem);
+  text-align: left;
+}
+.policy-form-eventos-config th:last-child,
+.policy-form-eventos-config td:last-child { width: auto; }
+/* Coluna Duração ativa: título na mesma posição horizontal que o componente (ex.: "1 h") – alinhado à esquerda */
+.policy-form-eventos-config th:last-child,
+.policy-form-eventos-config td:last-child {
+  padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+}
+.policy-form-eventos-config td:last-child .modal-select,
+.policy-form-eventos-config td:last-child .modal-select__input-wrap {
+  max-width: calc(100% - 2rem);
+  box-sizing: border-box;
 }
 .policy-form-eventos-config th,
 .policy-form-eventos-config td {
   padding: 0.5rem 0.75rem;
   vertical-align: middle;
 }
-/* Alinhar título da coluna Tipo com o corpo: mesmo padding do tbody */
+.policy-form-eventos-config tbody {
+  background: #FFFFFF;
+}
 .policy-form-eventos-config thead th {
+  border: none;
+  border-bottom: 1px solid #E9EEEE;
+  box-sizing: border-box;
+  white-space: nowrap;
+  vertical-align: middle;
+  min-height: 2.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.policy-form-eventos-config-table-wrap .policy-form-eventos-config thead th:first-child {
+  border-radius: 8px 0 0 0;
+}
+.policy-form-eventos-config-table-wrap .policy-form-eventos-config thead th:last-child {
+  border-radius: 0 8px 0 0;
+}
+/* Cabeçalho coluna Duração ativa: mesmo padding e alinhamento das células (como na coluna Tipo) */
+.policy-form-eventos-config thead th:last-child {
+  padding: 0.5rem 0.25rem 0.5rem 0.5rem !important;
+  vertical-align: middle;
+}
+/* Cabeçalho com ícone de info: mesmo alinhamento que os outros th (sem flex); ícone inline ao lado do texto */
+.policy-form-eventos-config thead th.policy-form-eventos-config-header__th-with-info {
+  vertical-align: middle;
+}
+.policy-form-eventos-config-header__th-with-info .policy-form-header-info-wrap {
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+/* Label "Tipo de acompanhamento" com ícone de informação (mesmo padrão de Pontos) */
+.policy-form-tracking-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+.policy-form-tracking-label-wrap .policy-form-header-info-wrap {
+  margin-left: 0;
+}
+.policy-form-header-info-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.policy-form-header-info-wrap .ds-icon {
+  width: 1em;
+  height: 1em;
+  font-size: inherit;
+}
+/* Tooltip no formato da imagem: fundo branco, bordas arredondadas, sombra cinza, fonte Noto Sans */
+.policy-form-header-info-tooltip {
   padding: 0.5rem 0.75rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-noto-sans);
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+  max-width: 20rem;
+  line-height: 1.35;
 }
 /* Coluna Tipo: alinhar à esquerda como a coluna Evento (título e todas as linhas) */
 .score-list .list-table th:nth-child(2),
@@ -3056,9 +3341,15 @@ body.cr-fullscreen-modal-open .app-content {
   color: #344054;
   margin: 0;
 }
+/* Mesma formatação que "Selecione os eventos desta política..." + 1rem acima (distância da caixa de ocorrência) */
 .policy-form-gatilhos-hint {
-  margin: 0.75rem 0 0;
+  font-size: 0.6875rem;
   color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 1rem 0 0.5rem 0;
+}
+.cr-modal__body .policy-form .policy-form-gatilhos-hint {
+  font-size: 0.6875rem;
 }
 /* Título dentro do card: negrito (Gatilho 1) */
 .policy-form-gatilhos-section .trail-step-title {
@@ -3130,6 +3421,77 @@ body.cr-fullscreen-modal-open .app-content {
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-top: 0.25rem;
+}
+
+/* Tabela de usuários existentes: mesmo cabeçalho da tabela de eventos (Nome, Email, Grupo de organização) */
+.policy-form-usuarios-table-wrap {
+  background: #F0F0F0;
+  border: 1px solid #E9EEEE;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+.policy-form-usuarios-table-body-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 12rem;
+  border-radius: 0 0 8px 8px;
+  background: #FFFFFF;
+}
+.policy-form-usuarios-table-header,
+.policy-form-usuarios-table-body {
+  width: 100%;
+  min-width: 24rem;
+  table-layout: fixed;
+}
+.policy-form-usuarios-table-header th:nth-child(1),
+.policy-form-usuarios-table-body td:nth-child(1) { width: 2rem; }
+.policy-form-usuarios-table-header th:nth-child(2),
+.policy-form-usuarios-table-body td:nth-child(2) { width: 24%; }
+.policy-form-usuarios-table-header th:nth-child(3),
+.policy-form-usuarios-table-body td:nth-child(3) { width: 30%; }
+.policy-form-usuarios-table-header th:nth-child(4),
+.policy-form-usuarios-table-body td:nth-child(4) { width: 44%; min-width: 8rem; }
+.policy-form-usuarios-table th,
+.policy-form-usuarios-table td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+}
+.policy-form-usuarios-table-header thead th:nth-child(4),
+.policy-form-usuarios-table-body td:nth-child(4) {
+  text-align: left;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+.policy-form-usuarios-table-header thead th {
+  background: #F0F0F0;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid #E9EEEE;
+  box-sizing: border-box;
+  font-weight: 600;
+  color: #344054;
+}
+.policy-form-usuarios-table-wrap .policy-form-usuarios-table-header thead th:first-child {
+  border-radius: 8px 0 0 0;
+}
+.policy-form-usuarios-table-wrap .policy-form-usuarios-table-header thead th:last-child {
+  border-radius: 0 8px 0 0;
+}
+.policy-form-usuarios-table-body tbody tr {
+  background: #FFFFFF;
+}
+.policy-form-usuarios-table-body tbody tr:not(:last-child) td {
+  border-bottom: 1px solid #E4E7EC;
+}
+.policy-form-usuarios-grupo-tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: #d4edda;
+  color: #155724;
+  font-size: 0.8125rem;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 /* Garantir estilos da seção Gatilhos dentro do modal Nova/Editar política */

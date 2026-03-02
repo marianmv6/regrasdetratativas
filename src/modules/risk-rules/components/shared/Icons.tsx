@@ -47,4 +47,41 @@ export const IconTrash: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export default { IconEdit, IconTrash };
+/** Lupa: igual à referência — círculo (lente) + haste curta reta a 45° do canto inferior direito, traço uniforme, pontas retas */
+export const IconSearch: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    className={iconClass}
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="butt"
+    strokeLinejoin="miter"
+    aria-hidden
+    {...props}
+  >
+    <circle cx="12" cy="12" r="7" />
+    <path d="M 16.95 16.95 L 21.95 21.95" />
+  </svg>
+);
+
+/** Ícone de informação: círculo com "i" (cor teal/cyan, fundo transparente) */
+export const IconInfo: React.FC<React.SVGProps<SVGSVGElement> & { color?: string }> = ({ color = '#00ACC1', ...props }) => (
+  <svg
+    className={iconClass}
+    width="1em"
+    height="1em"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" fill="none" />
+    <path d="M12 11v5M12 8v1" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <circle cx="12" cy="6" r="1.5" fill={color} />
+  </svg>
+);
+
+export default { IconEdit, IconTrash, IconSearch, IconInfo };
