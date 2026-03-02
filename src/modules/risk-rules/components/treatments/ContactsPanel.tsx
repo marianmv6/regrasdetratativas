@@ -157,9 +157,12 @@ export const ContactsPanel: React.FC<ContactsPanelProps> = ({ contacts, onSave, 
                           ))
                         : '—'}
                       {(c.timeStart || c.timeEnd) && (
-                        <span className="contact-time-range">
-                          {[c.timeStart, c.timeEnd].filter(Boolean).join('–')}
-                        </span>
+                        <>
+                          <br />
+                          <span className="contact-time-range">
+                            {[c.timeStart, c.timeEnd].filter(Boolean).join('–')}
+                          </span>
+                        </>
                       )}
                     </span>
                   </td>
