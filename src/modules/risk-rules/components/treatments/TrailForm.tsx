@@ -58,6 +58,8 @@ interface TrailFormProps {
   onCancel: () => void;
   hideActions?: boolean;
   contacts?: Contact[];
+  /** Templates de e-mail ativos (para ação "Email automático") */
+  emailTemplates?: { id: string; title: string }[];
   voiceMessages?: { id: string; identification: string }[];
   onValidationError?: (message: string) => void;
   onDirtyChange?: (dirty: boolean) => void;
@@ -79,6 +81,7 @@ export const TrailForm: React.FC<TrailFormProps> = ({
   onCancel,
   hideActions = false,
   contacts = [],
+  emailTemplates = [],
   voiceMessages = [],
   onValidationError,
   onDirtyChange,
@@ -113,6 +116,7 @@ export const TrailForm: React.FC<TrailFormProps> = ({
       const bIds = (b.config?.contactIds ?? []).slice().sort().join(',');
       if (aIds !== bIds) return true;
       if ((a.config?.voiceMessageId ?? '') !== (b.config?.voiceMessageId ?? '')) return true;
+      if ((a.config?.emailTemplateId ?? '') !== (b.config?.emailTemplateId ?? '')) return true;
     }
     return false;
   }, [initialData, name, active, steps]);
@@ -266,6 +270,17 @@ export const TrailForm: React.FC<TrailFormProps> = ({
               </div>
               {step.action === 'email_automatico' && (
                 <div className="trail-step-config">
+                  {emailTemplates.length > 0 && (
+                    <div className="trail-step-config__template-wrap">
+                      <label className="trail-step-config__section-title">Template de e-mail</label>
+                      <ModalSelect
+                        options={emailTemplates.map((t) => ({ value: t.id, label: t.title }))}
+                        value={step.config?.emailTemplateId ?? ''}
+                        onChange={(v) => updateStep(step.id, { config: { ...step.config, emailTemplateId: v || undefined } })}
+                        placeholder="Selecione o template"
+                      />
+                    </div>
+                  )}
                   <label className="trail-step-config__section-title">Selecione quem deve receber o e-mail</label>
                   <p className="trail-step-config__hint">Pode ser selecionado mais de um</p>
                   <div className="trail-step-contacts-table-wrap">

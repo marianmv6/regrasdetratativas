@@ -18,6 +18,7 @@ const entityLabels: Record<HistoryEntry['entityType'], string> = {
   treatment: 'Tratativa',
   contact: 'Contato',
   voice: 'Mensagem de voz',
+  email_template: 'Template de e-mail',
 };
 
 interface HistoryListProps {

@@ -3,8 +3,9 @@
  * Pontuações e níveis conforme imagem de referência (modal Pontuações).
  */
 
-import type { Policy, ScoreRule, Treatment, HistoryEntry, Trail, Contact, VoiceMessage } from '../types/risk.types';
+import type { Policy, ScoreRule, Treatment, HistoryEntry, Trail, Contact, VoiceMessage, EmailTemplate } from '../types/risk.types';
 import type { EventType } from '../types/risk.types';
+import { EMAIL_VARS_CABECALHO, EMAIL_VARS_CORPO, EMAIL_VARS_RODAPE } from '../constants/emailTemplateConstants';
 
 /** Usuários ativos da plataforma (para multi-select em políticas) */
 export interface PlatformUser {
@@ -151,3 +152,27 @@ export const mockVoiceMessages: VoiceMessage[] = [
 ];
 
 export const mockHistory: HistoryEntry[] = [];
+
+/** Todas as variáveis ativas para o template padrão Creare */
+const allEmailVariablesTrue = (): Record<string, boolean> => {
+  const keys = [
+    ...EMAIL_VARS_CABECALHO.map((v) => v.key),
+    ...EMAIL_VARS_CORPO.map((v) => v.key),
+    ...EMAIL_VARS_RODAPE.map((v) => v.key),
+  ];
+  return keys.reduce<Record<string, boolean>>((acc, k) => ({ ...acc, [k]: true }), {});
+};
+
+/** Templates de e-mail (máx. 10 por empresa). Padrão Creare não pode ser inativado/excluído. */
+export const mockEmailTemplates: EmailTemplate[] = [
+  {
+    id: 'tpl-default-creare',
+    title: 'Padrão Creare',
+    description: 'Template padrão do sistema para notificações por e-mail.',
+    active: true,
+    isDefault: true,
+    variables: allEmailVariablesTrue(),
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z',
+  },
+];

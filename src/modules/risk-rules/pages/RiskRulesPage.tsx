@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import type { RiskTabId } from '../types/risk.types';
-import { mockPolicies, mockScoreRules, mockTreatments, mockTrails, mockContacts, mockVoiceMessages, mockHistory, mockUsers } from '../mocks/risk.mock';
+import { mockPolicies, mockScoreRules, mockTreatments, mockTrails, mockContacts, mockVoiceMessages, mockHistory, mockUsers, mockEmailTemplates } from '../mocks/risk.mock';
 import { TYPE_FILTER_OPTIONS, type TypeFilterValue } from '../constants/eventTypes';
 import { RiskTabs } from '../components/tabs/RiskTabs';
 import { PolicyList } from '../components/policy/PolicyList';
@@ -17,10 +17,13 @@ import { UnsavedConfirmModal } from '../components/shared/UnsavedConfirmModal';
 import { AppliedConfirmModal } from '../components/shared/AppliedConfirmModal';
 import { CrModal } from '../components/shared/CrModal';
 import { SuccessToast, type ToastVariant } from '../components/shared/SuccessToast';
-import type { Policy, Treatment, Trail, Contact, VoiceMessage, ScoreRule, HistoryEntry } from '../types/risk.types';
+import type { Policy, Treatment, Trail, Contact, VoiceMessage, ScoreRule, HistoryEntry, EmailTemplate } from '../types/risk.types';
 import { CrDrawer } from '../components/shared/CrDrawer';
 import { ContactsPanel } from '../components/treatments/ContactsPanel';
+import { EmailTemplatesPanel } from '../components/treatments/EmailTemplatesPanel';
+import { EmailTemplateForm } from '../components/treatments/EmailTemplateForm';
 import { VoiceMessagesPanel } from '../components/treatments/VoiceMessagesPanel';
+import { MAX_EMAIL_TEMPLATES_PER_COMPANY, DEFAULT_TEMPLATE_ID } from '../constants/emailTemplateConstants';
 
 /**
  * Página principal do módulo Regras de Tratativa - Módulo de Eventos.
@@ -49,7 +52,10 @@ export const RiskRulesPage: React.FC = () => {
   const [trails, setTrails] = useState<Trail[]>(mockTrails);
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>(mockVoiceMessages);
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>(mockEmailTemplates);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [emailTemplateFormOpen, setEmailTemplateFormOpen] = useState(false);
+  const [emailTemplateEditing, setEmailTemplateEditing] = useState<EmailTemplate | null>(null);
 
   const addHistoryEntry = (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => {
     setHistory((prev) => [
@@ -91,6 +97,7 @@ export const RiskRulesPage: React.FC = () => {
   const formatTrackingType = (v: unknown) => (v === 'veiculo' ? 'Por veículo' : 'Por motorista');
   const formatMode = (v: unknown) => (v === 'levels' ? 'Por nível' : 'Por pontuação');
   const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
+  const [emailTemplatesDrawerOpen, setEmailTemplatesDrawerOpen] = useState(false);
   const [voiceMessagesDrawerOpen, setVoiceMessagesDrawerOpen] = useState(false);
 
   const [policyFormOpen, setPolicyFormOpen] = useState(false);
@@ -531,6 +538,89 @@ export const RiskRulesPage: React.FC = () => {
     });
   };
 
+  const openEmailTemplateForm = (template: EmailTemplate | null) => {
+    setEmailTemplateEditing(template);
+    setEmailTemplatesDrawerOpen(false);
+    setEmailTemplateFormOpen(true);
+  };
+
+  const closeEmailTemplateForm = () => {
+    setEmailTemplateFormOpen(false);
+    setEmailTemplateEditing(null);
+  };
+
+  const handleEmailTemplateSave = (data: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
+    const isCreate = !data.id;
+    if (isCreate && emailTemplates.length >= MAX_EMAIL_TEMPLATES_PER_COMPANY) {
+      showToast(`Limite de ${MAX_EMAIL_TEMPLATES_PER_COMPANY} templates de e-mail por empresa. Não é possível criar novo.`, 'warning');
+      return;
+    }
+    const now = new Date().toISOString();
+    if (data.id) {
+      setEmailTemplates((prev) =>
+        prev.map((t) =>
+          t.id === data.id
+            ? {
+                ...t,
+                title: data.title,
+                description: data.description,
+                active: data.active,
+                variables: data.variables ?? t.variables,
+                updatedAt: now,
+              }
+            : t
+        )
+      );
+      addHistoryEntry({
+        entityType: 'email_template',
+        entityId: data.id,
+        entityName: data.title,
+        action: 'update',
+        actionDescription: 'Template de e-mail atualizado.',
+      });
+      showToast('Template de e-mail atualizado.');
+    } else {
+      const newId = `tpl-${Date.now()}`;
+      setEmailTemplates((prev) => [
+        ...prev,
+        {
+          id: newId,
+          title: data.title,
+          description: data.description,
+          active: data.active ?? true,
+          variables: data.variables ?? {},
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]);
+      addHistoryEntry({
+        entityType: 'email_template',
+        entityId: newId,
+        entityName: data.title,
+        action: 'create',
+        actionDescription: 'Template de e-mail criado.',
+      });
+      showToast('Template de e-mail criado.');
+    }
+    closeEmailTemplateForm();
+  };
+
+  const handleEmailTemplateDelete = (template: EmailTemplate) => {
+    if (template.id === DEFAULT_TEMPLATE_ID || template.isDefault) return;
+    confirmDelete('Excluir template', `Deseja excluir o template "${template.title}"?`, () => {
+      setEmailTemplates((prev) => prev.filter((t) => t.id !== template.id));
+      addHistoryEntry({
+        entityType: 'email_template',
+        entityId: template.id,
+        entityName: template.title,
+        action: 'delete',
+        actionDescription: 'Template de e-mail excluído.',
+      });
+      closeConfirm();
+      showToast('Template de e-mail excluído.');
+    });
+  };
+
   return (
     <div className="risk-rules-page page-layout content-body">
       <div className="content-toolbar top-bar">
@@ -589,14 +679,21 @@ export const RiskRulesPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() => setContactsDrawerOpen(true)}
               >
-                Gerenciar contatos
+                Contatos
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setEmailTemplatesDrawerOpen(true)}
+              >
+                E-mail automático
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setVoiceMessagesDrawerOpen(true)}
               >
-                Gerenciar mensagens de voz
+                Mensagens de voz
               </button>
               <button type="button" className="btn btn-primary" onClick={() => openTrailForm()}>
                 Nova tratativa
@@ -672,6 +769,7 @@ export const RiskRulesPage: React.FC = () => {
                   onCancel={closeTrailForm}
                   hideActions
                   contacts={contacts}
+                  emailTemplates={emailTemplates.filter((t) => t.active).map((t) => ({ id: t.id, title: t.title }))}
                   voiceMessages={voiceMessages.filter((v) => v.active).map((v) => ({ id: v.id, identification: v.identification }))}
                   onValidationError={(msg) => showToast(msg, 'warning')}
                   onDirtyChange={setTrailFormDirty}
@@ -727,7 +825,7 @@ export const RiskRulesPage: React.FC = () => {
         }}
       />
 
-      <CrDrawer open={contactsDrawerOpen} title="Gerenciar contatos" onClose={() => setContactsDrawerOpen(false)} className="cr-drawer--contacts">
+      <CrDrawer open={contactsDrawerOpen} title="Contatos" onClose={() => setContactsDrawerOpen(false)} className="cr-drawer--contacts">
         <ContactsPanel
           contacts={contacts}
           onSave={handleContactSave}
@@ -736,7 +834,37 @@ export const RiskRulesPage: React.FC = () => {
         />
       </CrDrawer>
 
-      <CrDrawer open={voiceMessagesDrawerOpen} title="Gerenciar mensagens de voz" onClose={() => setVoiceMessagesDrawerOpen(false)} className="cr-drawer--wide">
+      <CrDrawer open={emailTemplatesDrawerOpen} title="E-mail automático" onClose={() => setEmailTemplatesDrawerOpen(false)} className="cr-drawer--wide">
+        <EmailTemplatesPanel
+          templates={emailTemplates}
+          onNew={() => openEmailTemplateForm(null)}
+          onEdit={openEmailTemplateForm}
+          onDelete={handleEmailTemplateDelete}
+        />
+      </CrDrawer>
+
+      {emailTemplateFormOpen && (
+        <CrModal
+          open
+          title={emailTemplateEditing ? 'Editar template de e-mail' : 'Novo template de e-mail'}
+          onClose={closeEmailTemplateForm}
+          onCancel={closeEmailTemplateForm}
+          formId="email-template-form"
+          primaryLabel="Salvar"
+          cancelLabel="Cancelar"
+          fullScreen
+        >
+          <EmailTemplateForm
+            id="email-template-form"
+            initialData={emailTemplateEditing ?? undefined}
+            onSubmit={handleEmailTemplateSave}
+            onCancel={closeEmailTemplateForm}
+            hideActions
+          />
+        </CrModal>
+      )}
+
+      <CrDrawer open={voiceMessagesDrawerOpen} title="Mensagens de voz" onClose={() => setVoiceMessagesDrawerOpen(false)} className="cr-drawer--wide">
         <VoiceMessagesPanel
           voiceMessages={voiceMessages}
           onSave={handleVoiceMessageSave}

@@ -99,8 +99,26 @@ export interface TrailStepConfig {
   contactIds?: string[];
   groupIds?: string[];
   voiceMessageId?: string;
+  /** ID do template de e-mail (quando ação é email_automatico) */
+  emailTemplateId?: string;
   description?: string;
   url?: string;
+}
+
+/** Template de e-mail automático: título, descrição, status e variáveis ativas */
+export interface EmailTemplate {
+  id: string;
+  /** Título que o destinatário vê na caixa de entrada */
+  title: string;
+  /** Descrição interna (apenas para o usuário) */
+  description?: string;
+  active: boolean;
+  /** Template padrão do sistema (não pode ser inativado nem excluído) */
+  isDefault?: boolean;
+  /** Chaves das variáveis ativas (cabecalho/corpo/rodape) */
+  variables?: Record<string, boolean>;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TrailStep {
@@ -160,7 +178,7 @@ export interface VoiceMessage {
 
 export interface HistoryEntry {
   id: string;
-  entityType: 'policy' | 'score' | 'treatment' | 'contact' | 'voice';
+  entityType: 'policy' | 'score' | 'treatment' | 'contact' | 'voice' | 'email_template';
   entityId: string;
   entityName: string;
   action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate';
