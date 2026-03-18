@@ -539,11 +539,11 @@ html, body {
   box-sizing: border-box;
 }
 .type-filter-option:hover {
-  background: #36A3F7;
+  background-color: #169EFF;
   color: #fff;
 }
 .type-filter-option[aria-selected="true"] {
-  background: #36A3F7;
+  background-color: #169EFF;
   color: #fff;
 }
 
@@ -2669,10 +2669,10 @@ body.cr-fullscreen-modal-open .app-content {
   background: #9CA3AF;
 }
 .email-template-form__var-switch--on {
-  background: #10B981;
+  background: #22c55e;
 }
 .email-template-form__var-switch--on:hover {
-  background: #059669;
+  filter: brightness(1.08);
 }
 .email-template-form__var-switch-knob {
   position: absolute;
@@ -3215,7 +3215,7 @@ body.cr-fullscreen-modal-open .app-content {
 }
 .contact-form-row--time .time-picker .time-picker__dropdown .modal-select__option--selected,
 .contact-form-row--time .time-picker .time-picker__dropdown .modal-select__option:hover {
-  background: #36A3F7;
+  background-color: #169EFF;
   color: #fff;
 }
 /* TimePicker: só horas; fonte proporcional à modal (0.875rem como os demais campos) */
@@ -3563,26 +3563,29 @@ body.cr-fullscreen-modal-open .app-content {
   box-sizing: border-box;
 }
 .modal-select__option:hover {
-  background: #36A3F7;
+  background-color: #169EFF;
   color: #fff;
 }
 .modal-select__option:hover .modal-select__option-pill {
   color: #fff;
-  background: transparent;
+  background-color: transparent;
 }
 .modal-select__option--selected {
-  background: #36A3F7;
+  background-color: #169EFF;
   color: #fff;
 }
 .modal-select__option--selected .modal-select__option-pill {
   color: #fff;
-  background: transparent;
+  background-color: transparent;
 }
-.modal-select__option:hover .modal-select__checkbox,
 .modal-select__option:hover .modal-select__chevron,
-.modal-select__option--selected .modal-select__checkbox,
 .modal-select__option--selected .modal-select__chevron {
-  color: #fff;
+  color: #fff !important;
+}
+/* Check (v) branco quando opção selecionada, conforme referência (quadrado azul + check branco) */
+.modal-select__option:hover .modal-select__checkbox,
+.modal-select__option--selected .modal-select__checkbox {
+  color: #fff !important;
 }
 .modal-select__option-pill {
   display: inline-block;
@@ -4262,9 +4265,18 @@ body.cr-fullscreen-modal-open .app-content {
   gap: 8px;
 }
 .policy-form-checkbox-option input {
-  width: auto;
   margin: 0;
   flex-shrink: 0;
+}
+.policy-form-checkbox-option input[type="checkbox"] {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  aspect-ratio: 1 !important;
+  padding: 0 !important;
 }
 .policy-form-checkbox-option label {
   display: inline;
@@ -4318,7 +4330,18 @@ body.cr-fullscreen-modal-open .app-content {
 
 .modal-select__checkbox {
   flex-shrink: 0;
-  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  max-width: 14px;
+  max-height: 14px;
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
   color: #667085;
 }
 .modal-select__chevron {

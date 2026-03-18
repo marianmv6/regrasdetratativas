@@ -48,6 +48,45 @@
   --font-size-header-title: 0.906rem;
 }
 
+/* Checkbox EXATAMENTE como na foto: 15px, cantos 2px, borda 1px azul, interior branco; selecionado = azul + check branco. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-primary);
+}
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  aspect-ratio: 1 !important;
+  padding: 0 !important;
+  border: 1px solid #169EFF !important;
+  border-radius: 2px !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  cursor: pointer;
+  vertical-align: middle;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+input[type="checkbox"]:checked {
+  background-color: #169EFF !important;
+  border-color: #169EFF !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-size: 75% 75%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 html {
   font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
