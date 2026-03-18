@@ -2244,7 +2244,12 @@ body.cr-fullscreen-modal-open .app-content {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
-/* Campo Ação: largura para caber até 30 caracteres sem sobrepor a seta */
+/* Campo Ação e Mensagem de voz: largura do componente = largura do dropdown (lista não maior que o campo) */
+.trail-step-action .modal-select {
+  width: fit-content;
+  max-width: 38ch;
+  min-width: 14rem;
+}
 .trail-step-action .modal-select .modal-select__input-wrap {
   max-width: 38ch;
   min-width: 14rem;
@@ -2253,6 +2258,11 @@ body.cr-fullscreen-modal-open .app-content {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.trail-step-action .modal-select .modal-select__dropdown {
+  min-width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .trail-step-config {
   margin-top: 1.5rem;
